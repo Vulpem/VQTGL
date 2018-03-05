@@ -9,6 +9,15 @@
 *.so
 *.dll
 *.dylib
+*.sln
+*.vcxproj
+*.filters
+
+/.vs/
+*debug/
+*Debug/
+*release/
+*Release/
 
 # Qt-es
 
