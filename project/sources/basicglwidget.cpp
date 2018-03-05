@@ -7,6 +7,27 @@
 
 #include <iostream>
 
+struct float3
+{
+    float3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
+    float x, y, z;
+};
+
+struct float2
+{
+    float2(float _x, float _y) : x(_x), y(_y) {}
+    float x, y;
+};
+
+struct Vertex
+{
+    Vertex(float3 position, float3 normal = { 0.f,0.f,-1.f }, float2 UVs = { 0.f,0.f }, float3 col = { 1.f,1.f,1.f }) : pos(position), norm(normal), UV(UVs), color(col) {}
+    float3 pos;
+    float3 norm;
+    float2 UV;
+    float3 color;
+};
+
 BasicGLWidget::BasicGLWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
 	// To receive key events
@@ -18,6 +39,7 @@ BasicGLWidget::BasicGLWidget(QWidget *parent) : QOpenGLWidget(parent)
 	m_height = 500;
 
     //Camera
+
     /*m_ar;
     m_fov;
     m_fovIni;
@@ -30,12 +52,8 @@ BasicGLWidget::BasicGLWidget(QWidget *parent) : QOpenGLWidget(parent)
 	// Scene
 	m_sceneCenter = glm::vec3(0.0f, 0.0f, 0.0f);
 	m_sceneRadius = 50.0f;
-	m_bkgColor = Qt::black;
+	m_bgColor = Qt::black;
 	m_backFaceCulling = false;
-    /*m_VAO;
-    m_VBOVerts;
-    m_VBONorms;
-    m_VBOCols;*/
 
     // Mouse
     /*m_xClick;
@@ -45,12 +63,6 @@ BasicGLWidget::BasicGLWidget(QWidget *parent) : QOpenGLWidget(parent)
 
 	// Shaders
 	m_program = nullptr;
-    /*m_transLoc;
-    m_projLoc;
-    m_viewLoc;
-    m_vertexLoc;
-    m_normalLoc;
-    m_colorLoc;*/
 
 	// FPS
 	m_showFps = false;
@@ -76,10 +88,8 @@ void BasicGLWidget::cleanup()
 	makeCurrent();
 	
 	glDisableVertexAttribArray(0);
-	glDeleteBuffers(1, &m_VBOVerts);
-	glDeleteBuffers(1, &m_VBONorms);
-	glDeleteBuffers(1, &m_VBOCols);
-	glDeleteVertexArrays(1, &m_VAO);
+	glDeleteBuffers(1, &m_buf_data);
+	glDeleteBuffers(1, &m_buf_indices);
 	
 	if (m_program == nullptr)
         return;
@@ -114,20 +124,33 @@ void BasicGLWidget::paintGL()
 	computeFps();
 
 	// Paint the scene
-	glClearColor(m_bkgColor.red() / 255.0f, m_bkgColor.green() / 255.0f, m_bkgColor.blue() / 255.0f, 1.0f);
+	glClearColor(m_bgColor.red() / 255.0f, m_bgColor.green() / 255.0f, m_bgColor.blue() / 255.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 	if (m_backFaceCulling)
 		glEnable(GL_CULL_FACE);
 
-	// Bind the VAO to draw the scene
-	glBindVertexArray(m_VAO);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_buf_data);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_buf_indices);
+
+    glVertexAttribPointer(m_vertexLoc, 3, GL_FLOAT, false, 11 * sizeof(float), (GLvoid*)0);
+    glVertexAttribPointer(m_normalLoc, 3, GL_FLOAT, false, 11 * sizeof(float), (GLvoid*)(3 * sizeof(float)));
+    glVertexAttribPointer(m_UVLoc,     2, GL_FLOAT, false, 11 * sizeof(float), (GLvoid*)(6 * sizeof(float)));
+    glVertexAttribPointer(m_colorLoc,  3, GL_FLOAT, false, 11 * sizeof(float), (GLvoid*)(8 * sizeof(float)));
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	// Apply the geometric transforms to the scene (position/orientation)
 	sceneTransform();
 
-	// Draw the scene
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawElements(GL_TRIANGLES,m_nIndices, GL_UNSIGNED_INT, (void*)0);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	// Unbind the vertex array
 	glBindVertexArray(0);
@@ -257,6 +280,7 @@ void BasicGLWidget::loadShaders()
 	// Get the attribs locations of the vertex shader
 	m_vertexLoc = glGetAttribLocation(m_program->programId(), "vertex");
 	m_normalLoc = glGetAttribLocation(m_program->programId(), "normal");
+    m_UVLoc = glGetAttribLocation(m_program->programId(), "UV");
 	m_colorLoc = glGetAttribLocation(m_program->programId(), "color");
 
 	// Get the uniforms locations of the vertex shader
@@ -319,9 +343,49 @@ void BasicGLWidget::changeBackgroundColor()
 
 void BasicGLWidget::createBuffersScene()
 {
+    // TO DO: Create the buffers, initialize VAO, VBOs, etc.
+    std::vector<Vertex> vertices;
+    std::vector<uint> indices = {
+        0, 2, 1,
+        1, 2, 3
+    };
 
-	// TO DO: Create the buffers, initialize VAO, VBOs, etc.
+    vertices.push_back({
+        {-10.f, +10.f, 0.f},
+        {0.f,0.f,-1.f},
+        {0.f,0.f},
+        {0.f, 1.f, 0.f}
+        });
+    vertices.push_back({
+        { +10.f, +10.f, 0.f },
+        { 0.f,0.f,-1.f },
+        { 1.f,0.f },
+        { 0.f, 1.f, 1.f }
+        });
+    vertices.push_back({
+        { -10.f, -10.f, 0.f },
+        { 0.f,0.f,-1.f },
+        { 0.f,1.f },
+        { 0.f, 0.f, 1.f }
+        });
+    vertices.push_back({
+        { +10.f, -10.f, 0.f },
+        { 0.f,0.f,-1.f },
+        { 1.f,1.f },
+        { 1.f, 0.f, 0.f }
+        });
 
+    m_nIndices = indices.size();
+
+    glGenBuffers(1, &m_buf_indices);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_buf_indices);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * m_nIndices, indices.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    glGenBuffers(1, &m_buf_data);
+    glBindBuffer(GL_ARRAY_BUFFER, m_buf_data);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void BasicGLWidget::computeBBoxScene()
@@ -333,8 +397,7 @@ void BasicGLWidget::computeBBoxScene()
 
 void BasicGLWidget::sceneTransform()
 {
-	glm::mat4 geomTransform(1.0f);
-
+    glm::mat4 geomTransform(1.0f);
 
 	// TO DO: Rotations of the scene
 

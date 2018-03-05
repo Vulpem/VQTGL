@@ -84,8 +84,8 @@ private:
 	// Scene
 	glm::vec3 m_sceneCenter;
 	float m_sceneRadius;
-	GLuint m_VAO, m_VBOVerts, m_VBONorms, m_VBOCols;
-	QColor m_bkgColor;
+	GLuint m_buf_data, m_buf_indices, m_nIndices;
+	QColor m_bgColor;
 	bool m_backFaceCulling;
 
 	// Mouse
@@ -97,7 +97,7 @@ private:
 	// Shaders
     QOpenGLShaderProgram *m_program;
 	GLuint m_transLoc, m_projLoc, m_viewLoc;
-	GLuint m_vertexLoc, m_normalLoc, m_colorLoc;
+	GLuint m_vertexLoc, m_normalLoc, m_UVLoc, m_colorLoc;
 
 	// FPS
 	bool m_showFps;
