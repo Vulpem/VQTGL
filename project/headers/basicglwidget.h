@@ -14,6 +14,7 @@
 #include <QMouseEvent>
 #include <QTime>
 #include <QWheelEvent>
+#include <qtimer.h>
 
 #include "glm\glm.hpp"
 #include "glm\gtc\matrix_transform.hpp"
@@ -36,7 +37,7 @@ signals:
 
 protected:
     void initializeGL() override;
-    void paintGL() override;
+	void paintGL() override;
     void resizeGL(int width, int height) override;
 	
 	// Keyboard and mouse interaction
@@ -57,7 +58,7 @@ private:
 	void viewTransform(); // Position of the camera
 
 	// Scene
-	void changeBackgroundColor();
+	void changeBackgroundColor(QColor color);
 	void createBuffersScene();
 	void computeBBoxScene();
 	void sceneTransform(); // Position and orientation of the scene
@@ -84,7 +85,8 @@ private:
 	// Scene
 	glm::vec3 m_sceneCenter;
 	float m_sceneRadius;
-	GLuint m_buf_data, m_buf_indices, m_nIndices;
+	GLuint m_buf_data, m_buf_indices;
+	size_t m_nIndices;
 	QColor m_bgColor;
 	bool m_backFaceCulling;
 
@@ -101,6 +103,9 @@ private:
 
 	// FPS
 	bool m_showFps;
+	uint m_FPS;
+	uint m_frameCount;
+	QTime m_FPSTimer;
 	
 };
 

@@ -66,6 +66,8 @@ BasicGLWidget::BasicGLWidget(QWidget *parent) : QOpenGLWidget(parent)
 
 	// FPS
 	m_showFps = false;
+	m_frameCount = 0;
+	m_FPS = 0;
 }
 
 BasicGLWidget::~BasicGLWidget()
@@ -122,17 +124,21 @@ void BasicGLWidget::paintGL()
 {
 	// FPS computation
 	computeFps();
-
+	
 	// Paint the scene
 	glClearColor(m_bgColor.red() / 255.0f, m_bgColor.green() / 255.0f, m_bgColor.blue() / 255.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 	if (m_backFaceCulling)
 		glEnable(GL_CULL_FACE);
-
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
+	else
+		glDisable(GL_CULL_FACE);
+	
+    //glEnableClientState(GL_VERTEX_ARRAY);
+    //glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	//glEnableClientState(GL_NORMAL_ARRAY);
+	
+	m_program->bind();
 
     glBindBuffer(GL_ARRAY_BUFFER, m_buf_data);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_buf_indices);
@@ -151,10 +157,6 @@ void BasicGLWidget::paintGL()
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	// Unbind the vertex array
-	glBindVertexArray(0);
-
 
 	if (m_showFps)
 		showFps();
@@ -186,7 +188,7 @@ void BasicGLWidget::keyPressEvent(QKeyEvent *event)
 		case Qt::Key_B:
 			// Change the background color
 			std::cout << "-- AGEn message --: Change background color" << std::endl;
-			changeBackgroundColor();
+			changeBackgroundColor(QColor::fromRgb(rand() % 255, rand() % 255, rand() % 255));
 			break;
 		case Qt::Key_F:
 			// Enable/Disable frames per second
@@ -277,11 +279,13 @@ void BasicGLWidget::loadShaders()
 	// Bind the program (we are gonna use this program)
 	m_program->bind();
 
+	uint a = m_program->programId();
+
 	// Get the attribs locations of the vertex shader
-	m_vertexLoc = glGetAttribLocation(m_program->programId(), "vertex");
-	m_normalLoc = glGetAttribLocation(m_program->programId(), "normal");
-    m_UVLoc = glGetAttribLocation(m_program->programId(), "UV");
-	m_colorLoc = glGetAttribLocation(m_program->programId(), "color");
+	m_vertexLoc = 1;// glGetAttribLocation(m_program->programId(), "vertex");
+	m_normalLoc = 2;// glGetAttribLocation(m_program->programId(), "normal");
+	m_UVLoc = 3;// glGetAttribLocation(m_program->programId(), "UV");
+	m_colorLoc = 4;// glGetAttribLocation(m_program->programId(), "color");
 
 	// Get the uniforms locations of the vertex shader
 	m_transLoc = glGetUniformLocation(m_program->programId(), "sceneTransform");
@@ -334,11 +338,10 @@ void BasicGLWidget::viewTransform()
 	glUniformMatrix4fv(m_viewLoc, 1, GL_FALSE, &view[0][0]);
 }
 
-void BasicGLWidget::changeBackgroundColor() 
+void BasicGLWidget::changeBackgroundColor(QColor color)
 {
-
-	// TO DO: Change the background color
-
+	m_bgColor = color;
+	update();
 }
 
 void BasicGLWidget::createBuffersScene()
@@ -408,9 +411,19 @@ void BasicGLWidget::sceneTransform()
 
 void BasicGLWidget::computeFps() 
 {
+	if (m_frameCount == 0)
+	{
+		m_FPSTimer.start();
+	}
 
-	// TO DO: Compute the FPS
+	if (m_FPSTimer.elapsed()/1000.f >= 1.f)
+	{
+		m_FPS = m_frameCount;
+		m_frameCount = 0;
+		m_FPSTimer.restart();
+	}
 
+	m_frameCount++;
 }
 
 void BasicGLWidget::showFps()
