@@ -1,3 +1,5 @@
+TEMPLATE      = app
+
 HEADERS       = project/headers/glwidget.h \
                 project/headers/helloQT.h \
                 project/headers/mainwindow.h \

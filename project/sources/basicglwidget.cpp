@@ -153,7 +153,7 @@ void BasicGLWidget::paintGL()
 	// Apply the geometric transforms to the scene (position/orientation)
 	sceneTransform();
 
-    glDrawElements(GL_TRIANGLES,m_nIndices, GL_UNSIGNED_INT, (void*)0);
+    glDrawElements(GL_TRIANGLES,(GLint)m_nIndices, GL_UNSIGNED_INT, (void*)0);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -263,8 +263,8 @@ void BasicGLWidget::loadShaders()
 	QOpenGLShader fs(QOpenGLShader::Fragment, this);
 
 	// Load and compile the shaders
-	vs.compileSourceFile("./shaders/basicgl.vert");
-	fs.compileSourceFile("./shaders/basicgl.frag");
+	vs.compileSourceFile("./project/shaders/basicgl.vert");
+	fs.compileSourceFile("./project/shaders/basicgl.frag");
 
 	// Create the program
 	m_program = new QOpenGLShaderProgram;
@@ -279,13 +279,11 @@ void BasicGLWidget::loadShaders()
 	// Bind the program (we are gonna use this program)
 	m_program->bind();
 
-	uint a = m_program->programId();
-
 	// Get the attribs locations of the vertex shader
-	m_vertexLoc = 1;// glGetAttribLocation(m_program->programId(), "vertex");
-	m_normalLoc = 2;// glGetAttribLocation(m_program->programId(), "normal");
-	m_UVLoc = 3;// glGetAttribLocation(m_program->programId(), "UV");
-	m_colorLoc = 4;// glGetAttribLocation(m_program->programId(), "color");
+	m_vertexLoc = glGetAttribLocation(m_program->programId(), "vertex");
+	m_normalLoc = glGetAttribLocation(m_program->programId(), "normal");
+	m_UVLoc = glGetAttribLocation(m_program->programId(), "UVs");
+	m_colorLoc = glGetAttribLocation(m_program->programId(), "color");
 
 	// Get the uniforms locations of the vertex shader
 	m_transLoc = glGetUniformLocation(m_program->programId(), "sceneTransform");
