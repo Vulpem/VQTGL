@@ -134,9 +134,9 @@ void BasicGLWidget::paintGL()
 	else
 		glDisable(GL_CULL_FACE);
 	
-    //glEnableClientState(GL_VERTEX_ARRAY);
-    //glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	//glEnableClientState(GL_NORMAL_ARRAY);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
 	
 	m_program->bind();
 
@@ -307,7 +307,10 @@ void BasicGLWidget::projectionTransform()
 	// Set the camera type
 	glm::mat4 proj(1.0f);
 	
+	m_zNear = m_sceneRadius;
+	m_zFar = 3.0f * m_sceneRadius;
 
+	proj = glm::project()
 	// TO DO: Set the camera parameters 
 	
 
@@ -330,7 +333,8 @@ void BasicGLWidget::viewTransform()
 
 
 	// TO DO: Camera placement and PAN
-	
+	view = glm::translate(view, m_sceneCenter + glm::vec3(0.0f, 0.0f, -2.0f * m_sceneRadius));
+	view = glm::translate(view, )
 
 	// Send the matrix to the shader
 	glUniformMatrix4fv(m_viewLoc, 1, GL_FALSE, &view[0][0]);
@@ -401,6 +405,7 @@ void BasicGLWidget::sceneTransform()
     glm::mat4 geomTransform(1.0f);
 
 	// TO DO: Rotations of the scene
+	//geomTransform = glm::translate(geomTransform, m_sceneCenter);
 
 
 	// Send the matrix to the shader
