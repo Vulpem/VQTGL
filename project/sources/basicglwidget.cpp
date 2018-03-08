@@ -307,12 +307,11 @@ void BasicGLWidget::projectionTransform()
 	// Set the camera type
 	glm::mat4 proj(1.0f);
 	
+	// TO DO: Set the camera parameters 
 	m_zNear = m_sceneRadius;
 	m_zFar = 3.0f * m_sceneRadius;
 
-	proj = glm::project()
-	// TO DO: Set the camera parameters 
-	
+	proj = glm::perspective(90.f, (float)m_width / m_height, m_zNear, m_zFar);
 
 	// Send the matrix to the shader
 	glUniformMatrix4fv(m_projLoc, 1, GL_FALSE, &proj[0][0]);
@@ -334,7 +333,7 @@ void BasicGLWidget::viewTransform()
 
 	// TO DO: Camera placement and PAN
 	view = glm::translate(view, m_sceneCenter + glm::vec3(0.0f, 0.0f, -2.0f * m_sceneRadius));
-	view = glm::translate(view, )
+	//view = glm::translate(view, )
 
 	// Send the matrix to the shader
 	glUniformMatrix4fv(m_viewLoc, 1, GL_FALSE, &view[0][0]);
