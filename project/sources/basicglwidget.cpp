@@ -113,11 +113,11 @@ void BasicGLWidget::initializeGL()
     // can recreate all resources.
     connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &BasicGLWidget::cleanup);
     initializeOpenGLFunctions();
- 	//loadShaders();
+ 	loadShaders();
 	createBuffersScene();
 	computeBBoxScene();
-	//projectionTransform();
-	//viewTransform();
+	projectionTransform();
+	viewTransform();
 }
 
 void BasicGLWidget::paintGL()
@@ -133,6 +133,7 @@ void BasicGLWidget::paintGL()
 		glEnable(GL_CULL_FACE);
 	else
 		glDisable(GL_CULL_FACE);
+	
 	/*
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -149,10 +150,11 @@ void BasicGLWidget::paintGL()
     glVertexAttribPointer(m_colorLoc,  3, GL_FLOAT, false, 11 * sizeof(float), (GLvoid*)(8 * sizeof(float)));
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
+	*/
 	// Apply the geometric transforms to the scene (position/orientation)
 	sceneTransform();
 
+	/*
     glDrawElements(GL_TRIANGLES,(GLint)m_nIndices, GL_UNSIGNED_INT, (void*)0);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -266,6 +268,8 @@ void BasicGLWidget::wheelEvent(QWheelEvent* event)
 
 void BasicGLWidget::loadShaders()
 {
+	std::cout << "Loading Shaders: \n";
+
 	// Declaration of the shaders
 	QOpenGLShader vs(QOpenGLShader::Vertex, this);
 	QOpenGLShader fs(QOpenGLShader::Fragment, this);
@@ -293,10 +297,23 @@ void BasicGLWidget::loadShaders()
 	m_UVLoc = glGetAttribLocation(m_program->programId(), "UVs");
 	m_colorLoc = glGetAttribLocation(m_program->programId(), "color");
 
+	std::cout << "	Attribute locations \n";
+	std::cout << "		vertex:		" << m_vertexLoc << "\n";
+	std::cout << "		normal:		" << m_normalLoc << "\n";
+	std::cout << "		UVs:		" << m_UVLoc << "\n";
+	std::cout << "		color:		" << m_colorLoc << "\n";
+
 	// Get the uniforms locations of the vertex shader
-	m_transLoc = glGetUniformLocation(m_program->programId(), "sceneTransform");
 	m_projLoc = glGetUniformLocation(m_program->programId(), "projTransform");
 	m_viewLoc = glGetUniformLocation(m_program->programId(), "viewTransform");
+	m_transLoc = glGetUniformLocation(m_program->programId(), "sceneTransform");
+
+	std::cout << "	Uniform locations \n";
+	std::cout << "		projection transform:		" << m_projLoc << "\n";
+	std::cout << "		view transform:			" << m_viewLoc << "\n";
+	std::cout << "		scene transform:		" << m_transLoc << "\n";
+
+	m_program->release();
 }
 
 void BasicGLWidget::reloadShaders()
@@ -426,9 +443,8 @@ void BasicGLWidget::sceneTransform()
 {
     glm::mat4 geomTransform(1.0f);
 
-	// TO DO: Rotations of the scene
+	// TO DO: Rotations of the scene (WTF: rotate the damn camera not the scene for fuck sake)
 	//geomTransform = glm::translate(geomTransform, m_sceneCenter);
-
 
 	// Send the matrix to the shader
 	glUniformMatrix4fv(m_transLoc, 1, GL_FALSE, &geomTransform[0][0]);

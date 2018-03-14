@@ -78,6 +78,8 @@ MainWindow::MainWindow()
 	setMenuBar(menuBar);
     manager = new WindowManager();
 	setCentralWidget(manager);
+
+	AddTestingGL();
 }
 
 void MainWindow::AddHelloQT()

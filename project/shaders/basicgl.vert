@@ -17,6 +17,7 @@ out vec4 vertexColor;
 void main()
 {
     vertexOCS = viewTransform * sceneTransform * vec4(vertex, 1);
+    normalOCS = normal;
     vertexColor = vec4(color,1);
     gl_Position = projTransform * vertexOCS;
 }
