@@ -113,11 +113,11 @@ void BasicGLWidget::initializeGL()
     // can recreate all resources.
     connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &BasicGLWidget::cleanup);
     initializeOpenGLFunctions();
- 	loadShaders();
+ 	//loadShaders();
 	createBuffersScene();
 	computeBBoxScene();
-	projectionTransform();
-	viewTransform();
+	//projectionTransform();
+	//viewTransform();
 }
 
 void BasicGLWidget::paintGL()
@@ -133,7 +133,7 @@ void BasicGLWidget::paintGL()
 		glEnable(GL_CULL_FACE);
 	else
 		glDisable(GL_CULL_FACE);
-	
+	/*
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
@@ -157,6 +157,14 @@ void BasicGLWidget::paintGL()
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+	*/
+
+	//Testing: triangle
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDisableVertexAttribArray(0);
 
 	if (m_showFps)
 		showFps();
@@ -347,6 +355,7 @@ void BasicGLWidget::changeBackgroundColor(QColor color)
 
 void BasicGLWidget::createBuffersScene()
 {
+	/*
     // TO DO: Create the buffers, initialize VAO, VBOs, etc.
     std::vector<Vertex> vertices;
     std::vector<uint> indices = {
@@ -390,6 +399,20 @@ void BasicGLWidget::createBuffersScene()
     glBindBuffer(GL_ARRAY_BUFFER, m_buf_data);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+	*/
+	//Testing: triangle
+	glGenVertexArrays(1, &m_vertexArrayID);
+	glBindVertexArray(m_vertexArrayID);
+
+	static const GLfloat g_vertex_buffer_data[] = {
+		-1.0f, -1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f
+	};
+
+	glGenBuffers(1, &m_vertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 }
 
 void BasicGLWidget::computeBBoxScene()

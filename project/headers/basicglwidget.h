@@ -88,7 +88,11 @@ private:
 	GLuint m_buf_data, m_buf_indices;
 	size_t m_nIndices;
 	QColor m_bgColor;
-	bool m_backFaceCulling;
+	bool m_backFaceCulling = false;
+
+	//Triangle testing
+	GLuint m_vertexArrayID;
+	GLuint m_vertexBuffer;
 
 	// Mouse
 	int m_xClick;
