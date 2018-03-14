@@ -90,10 +90,6 @@ private:
 	QColor m_bgColor;
 	bool m_backFaceCulling = false;
 
-	//Triangle testing
-	GLuint m_vertexArrayID;
-	GLuint m_vertexBuffer;
-
 	// Mouse
 	int m_xClick;
 	int m_yClick;
