@@ -136,14 +136,14 @@ void BasicGLWidget::paintGL()
 		glDisable(GL_CULL_FACE);
 	
 	//Testing: triangle
-	glEnableVertexAttribArray(0);
+	/*glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
-	glDisableVertexAttribArray(0);;
+	glDisableVertexAttribArray(0);*/
 
 	//Quad drawing
-	glEnableClientState(GL_VERTEX_ARRAY);
+    //glEnableClientState(GL_VERTEX_ARRAY);
 	//glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	//glEnableClientState(GL_NORMAL_ARRAY);
 
@@ -152,10 +152,17 @@ void BasicGLWidget::paintGL()
 	glBindBuffer(GL_ARRAY_BUFFER, m_buf_data);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_buf_indices);
 
-	glVertexAttribPointer(m_vertexLoc, 3, GL_FLOAT, false, 11 * sizeof(float), (GLvoid*)0);
-	//glVertexAttribPointer(m_normalLoc, 3, GL_FLOAT, false, 11 * sizeof(float), (GLvoid*)(3 * sizeof(float)));
-	//glVertexAttribPointer(m_UVLoc, 2, GL_FLOAT, false, 11 * sizeof(float), (GLvoid*)(6 * sizeof(float)));
-	glVertexAttribPointer(m_colorLoc, 3, GL_FLOAT, false, 11 * sizeof(float), (GLvoid*)(8 * sizeof(float)));
+	glVertexAttribPointer(m_vertexLoc, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)0);
+    glEnableVertexAttribArray(m_vertexLoc);
+
+	glVertexAttribPointer(m_normalLoc, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(m_normalLoc);
+
+	glVertexAttribPointer(m_UVLoc, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(m_UVLoc);
+
+	glVertexAttribPointer(m_colorLoc, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(8 * sizeof(float)));
+    glEnableVertexAttribArray(m_colorLoc);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -294,14 +301,14 @@ void BasicGLWidget::loadShaders()
 
 	// Get the attribs locations of the vertex shader
 	m_vertexLoc = glGetAttribLocation(m_program->programId(), "vertex");
-	//m_normalLoc = glGetAttribLocation(m_program->programId(), "normal");
-	//m_UVLoc = glGetAttribLocation(m_program->programId(), "UVs");
+	m_normalLoc = glGetAttribLocation(m_program->programId(), "normal");
+	m_UVLoc = glGetAttribLocation(m_program->programId(), "UV");
 	m_colorLoc = glGetAttribLocation(m_program->programId(), "color");
 
 	std::cout << "	Attribute locations \n";
 	std::cout << "		vertex:		" << m_vertexLoc << "\n";
-	//std::cout << "		normal:		" << m_normalLoc << "\n";
-	//std::cout << "		UVs:		" << m_UVLoc << "\n";
+	std::cout << "		normal:		" << m_normalLoc << "\n";
+	std::cout << "		UVs:		" << m_UVLoc << "\n";
 	std::cout << "		color:		" << m_colorLoc << "\n";
 
 	// Get the uniforms locations of the vertex shader
@@ -330,6 +337,8 @@ void BasicGLWidget::reloadShaders()
 
 void BasicGLWidget::projectionTransform()
 {
+    m_program->bind();
+
 	// Set the camera type
 	QMatrix4x4 proj;
 	proj.setToIdentity();
@@ -342,6 +351,8 @@ void BasicGLWidget::projectionTransform()
 
 	// Send the matrix to the shader
 	m_program->setUniformValue(m_projLoc, proj);
+
+    m_program->release();
 }
 
 void BasicGLWidget::resetCamera()
@@ -353,6 +364,8 @@ void BasicGLWidget::resetCamera()
 
 void BasicGLWidget::viewTransform()
 {
+    m_program->bind();
+
 	// Set the camera position
 	QMatrix4x4 view;
 	view.setToIdentity();
@@ -362,6 +375,8 @@ void BasicGLWidget::viewTransform()
 
 	// Send the matrix to the shader
 	m_program->setUniformValue(m_viewLoc, view);
+
+    m_program->release();
 }
 
 void BasicGLWidget::changeBackgroundColor(QColor color)
@@ -393,13 +408,13 @@ void BasicGLWidget::createBuffersScene()
         { 0.f, 1.f, 1.f }
         });
     vertices.push_back({
-        { -10.f, -10.f, 0.f },
+        { -10.f, -10.f, -0.f },
         { 0.f,0.f,-1.f },
         { 0.f,1.f },
         { 0.f, 0.f, 1.f }
         });
     vertices.push_back({
-        { +10.f, -10.f, 0.f },
+        { +10.f, -10.f, -0.f },
         { 0.f,0.f,-1.f },
         { 1.f,1.f },
         { 1.f, 0.f, 0.f }
@@ -443,6 +458,7 @@ void BasicGLWidget::sceneTransform()
 {
 	QMatrix4x4 geomTransform;
 	geomTransform.setToIdentity();
+    geomTransform.translate(QVector3D(0.f, 0.f, -40.f));
 
 	// TO DO: Rotations of the scene (WTF: rotate the damn camera not the scene for fuck sake)
 

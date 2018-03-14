@@ -24,6 +24,7 @@ SOURCES       = project/main.cpp \
 FORMS         = project/forms/basicwindow.ui
 
 QT           += widgets
+QT           += opengl
 
 CONFIG	     += console
 
