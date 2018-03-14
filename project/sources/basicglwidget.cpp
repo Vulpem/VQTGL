@@ -6,6 +6,7 @@
 #include <math.h>
 
 #include <iostream>
+#include <gl\GLU.h>
 
 struct float3
 {
@@ -134,39 +135,39 @@ void BasicGLWidget::paintGL()
 	else
 		glDisable(GL_CULL_FACE);
 	
-	/*
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	
-	m_program->bind();
-
-    glBindBuffer(GL_ARRAY_BUFFER, m_buf_data);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_buf_indices);
-
-    glVertexAttribPointer(m_vertexLoc, 3, GL_FLOAT, false, 11 * sizeof(float), (GLvoid*)0);
-    glVertexAttribPointer(m_normalLoc, 3, GL_FLOAT, false, 11 * sizeof(float), (GLvoid*)(3 * sizeof(float)));
-    glVertexAttribPointer(m_UVLoc,     2, GL_FLOAT, false, 11 * sizeof(float), (GLvoid*)(6 * sizeof(float)));
-    glVertexAttribPointer(m_colorLoc,  3, GL_FLOAT, false, 11 * sizeof(float), (GLvoid*)(8 * sizeof(float)));
-
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	*/
-	// Apply the geometric transforms to the scene (position/orientation)
-	sceneTransform();
-
-	/*
-    glDrawElements(GL_TRIANGLES,(GLint)m_nIndices, GL_UNSIGNED_INT, (void*)0);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-	*/
-
 	//Testing: triangle
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
-	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(0);;
+
+	//Quad drawing
+	glEnableClientState(GL_VERTEX_ARRAY);
+	//glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	//glEnableClientState(GL_NORMAL_ARRAY);
+
+	m_program->bind();
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_buf_data);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_buf_indices);
+
+	glVertexAttribPointer(m_vertexLoc, 3, GL_FLOAT, false, 11 * sizeof(float), (GLvoid*)0);
+	//glVertexAttribPointer(m_normalLoc, 3, GL_FLOAT, false, 11 * sizeof(float), (GLvoid*)(3 * sizeof(float)));
+	//glVertexAttribPointer(m_UVLoc, 2, GL_FLOAT, false, 11 * sizeof(float), (GLvoid*)(6 * sizeof(float)));
+	glVertexAttribPointer(m_colorLoc, 3, GL_FLOAT, false, 11 * sizeof(float), (GLvoid*)(8 * sizeof(float)));
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	// Apply the geometric transforms to the scene (position/orientation)
+	sceneTransform();
+
+	glDrawElements(GL_TRIANGLES,(GLint)m_nIndices, GL_UNSIGNED_INT, (void*)0);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	m_program->release();
 
 	if (m_showFps)
 		showFps();
@@ -293,20 +294,20 @@ void BasicGLWidget::loadShaders()
 
 	// Get the attribs locations of the vertex shader
 	m_vertexLoc = glGetAttribLocation(m_program->programId(), "vertex");
-	m_normalLoc = glGetAttribLocation(m_program->programId(), "normal");
-	m_UVLoc = glGetAttribLocation(m_program->programId(), "UVs");
+	//m_normalLoc = glGetAttribLocation(m_program->programId(), "normal");
+	//m_UVLoc = glGetAttribLocation(m_program->programId(), "UVs");
 	m_colorLoc = glGetAttribLocation(m_program->programId(), "color");
 
 	std::cout << "	Attribute locations \n";
 	std::cout << "		vertex:		" << m_vertexLoc << "\n";
-	std::cout << "		normal:		" << m_normalLoc << "\n";
-	std::cout << "		UVs:		" << m_UVLoc << "\n";
+	//std::cout << "		normal:		" << m_normalLoc << "\n";
+	//std::cout << "		UVs:		" << m_UVLoc << "\n";
 	std::cout << "		color:		" << m_colorLoc << "\n";
 
 	// Get the uniforms locations of the vertex shader
-	m_projLoc = glGetUniformLocation(m_program->programId(), "projTransform");
-	m_viewLoc = glGetUniformLocation(m_program->programId(), "viewTransform");
-	m_transLoc = glGetUniformLocation(m_program->programId(), "sceneTransform");
+	m_projLoc = m_program->uniformLocation("projTransform");
+	m_viewLoc = m_program->uniformLocation("viewTransform");
+	m_transLoc = m_program->uniformLocation("sceneTransform");
 
 	std::cout << "	Uniform locations \n";
 	std::cout << "		projection transform:		" << m_projLoc << "\n";
@@ -330,17 +331,17 @@ void BasicGLWidget::reloadShaders()
 void BasicGLWidget::projectionTransform()
 {
 	// Set the camera type
-	glm::mat4 proj(1.0f);
+	QMatrix4x4 proj;
+	proj.setToIdentity();
 	
 	// TO DO: Set the camera parameters 
 	m_zNear = m_sceneRadius;
 	m_zFar = 3.0f * m_sceneRadius;
 
-	proj = glm::perspective(90.f, (float)m_width / m_height, m_zNear, m_zFar);
+	proj.perspective(45.0f, GLfloat(m_width) / m_height, 0.01f, 100.0f);
 
 	// Send the matrix to the shader
-	glUniformMatrix4fv(m_projLoc, 1, GL_FALSE, &proj[0][0]);
-
+	m_program->setUniformValue(m_projLoc, proj);
 }
 
 void BasicGLWidget::resetCamera()
@@ -353,15 +354,14 @@ void BasicGLWidget::resetCamera()
 void BasicGLWidget::viewTransform()
 {
 	// Set the camera position
-	glm::mat4 view(1.0f);
-
+	QMatrix4x4 view;
+	view.setToIdentity();
+	view.translate(0, 0, -2.0f);
 
 	// TO DO: Camera placement and PAN
-	view = glm::translate(view, m_sceneCenter + glm::vec3(0.0f, 0.0f, -2.0f * m_sceneRadius));
-	//view = glm::translate(view, )
 
 	// Send the matrix to the shader
-	glUniformMatrix4fv(m_viewLoc, 1, GL_FALSE, &view[0][0]);
+	m_program->setUniformValue(m_viewLoc, view);
 }
 
 void BasicGLWidget::changeBackgroundColor(QColor color)
@@ -372,7 +372,7 @@ void BasicGLWidget::changeBackgroundColor(QColor color)
 
 void BasicGLWidget::createBuffersScene()
 {
-	/*
+	
     // TO DO: Create the buffers, initialize VAO, VBOs, etc.
     std::vector<Vertex> vertices;
     std::vector<uint> indices = {
@@ -416,7 +416,7 @@ void BasicGLWidget::createBuffersScene()
     glBindBuffer(GL_ARRAY_BUFFER, m_buf_data);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-	*/
+	
 	//Testing: triangle
 	glGenVertexArrays(1, &m_vertexArrayID);
 	glBindVertexArray(m_vertexArrayID);
@@ -441,13 +441,13 @@ void BasicGLWidget::computeBBoxScene()
 
 void BasicGLWidget::sceneTransform()
 {
-    glm::mat4 geomTransform(1.0f);
+	QMatrix4x4 geomTransform;
+	geomTransform.setToIdentity();
 
 	// TO DO: Rotations of the scene (WTF: rotate the damn camera not the scene for fuck sake)
-	//geomTransform = glm::translate(geomTransform, m_sceneCenter);
 
 	// Send the matrix to the shader
-	glUniformMatrix4fv(m_transLoc, 1, GL_FALSE, &geomTransform[0][0]);
+	m_program->setUniformValue(m_transLoc, geomTransform);
 }
 
 void BasicGLWidget::computeFps() 
