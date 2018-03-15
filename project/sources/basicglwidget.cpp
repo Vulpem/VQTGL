@@ -271,8 +271,8 @@ void BasicGLWidget::mouseMoveEvent(QMouseEvent *event)
 	else if (event->buttons() & Qt::MiddleButton)
 	{
 		QVector3D& pos = (*m_meshes.begin())->m_position;
-		pos.setX(pos.x() + dx);
-		pos.setY(pos.y() - dy);
+		pos.setX(pos.x() + dx / 4);
+		pos.setY(pos.y() - dy / 4);
 		needsUpdate = true;
 	}
 	m_mouseLastPos = event->pos();
@@ -284,16 +284,20 @@ void BasicGLWidget::mouseMoveEvent(QMouseEvent *event)
 
 void BasicGLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-
 	// TO DO: Rotation of the scene and PAN
 
 }
 
 void BasicGLWidget::wheelEvent(QWheelEvent* event)
 {
-
 	// TO DO: Change the fov of the camera to zoom in and out	
-
+	const int degrees = event->delta() / 8;
+	
+	if (degrees)
+	{
+		(*m_meshes.begin())->m_position.setZ((*m_meshes.begin())->m_position.z() + degrees / 10);
+		update();
+	}
 }
 
 void BasicGLWidget::loadShaders()
