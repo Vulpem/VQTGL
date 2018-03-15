@@ -245,14 +245,12 @@ void BasicGLWidget::keyPressEvent(QKeyEvent *event)
 
 void BasicGLWidget::mousePressEvent(QMouseEvent *event)
 {
-
 	// TO DO: Rotation of the scene and PAN
-
+	m_mouseLastPos = event->pos();
 }
 
 void BasicGLWidget::mouseMoveEvent(QMouseEvent *event)
 {
-	
 	// TO DO: Rotation of the scene and PAN
 	int dx = event->x() - m_mouseLastPos.x();
 	int dy = event->y() - m_mouseLastPos.y();
