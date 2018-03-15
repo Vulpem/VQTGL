@@ -5,29 +5,55 @@
 #include <QPainter>
 #include <math.h>
 
+#include <gl\GL.h>
+
 #include <iostream>
 #include <gl\GLU.h>
 
-struct float3
-{
-    float3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
-    float x, y, z;
-};
 
-struct float2
-{
-    float2(float _x, float _y) : x(_x), y(_y) {}
-    float x, y;
-};
 
-struct Vertex
+Vertex::Vertex(float3 position, float3 normal, float2 UVs, float3 col)
+    : pos(position)
+    , norm(normal)
+    , UV(UVs)
+    , color(col)
+{}
+
+Mesh::Mesh(std::vector<Vertex> vertices, std::vector<uint> indices)
+    : m_position(0.f, 0.f, 0.f)
+    , m_scale(1.f, 1.f, 1.f)
+    , m_rotation(0.f, 0.f, 0.f, 1.f)
+    , m_dataBuf(QOpenGLBuffer::Type::VertexBuffer)
+    , m_indicesBuf(QOpenGLBuffer::Type::IndexBuffer)
 {
-    Vertex(float3 position, float3 normal = { 0.f,0.f,-1.f }, float2 UVs = { 0.f,0.f }, float3 col = { 1.f,1.f,1.f }) : pos(position), norm(normal), UV(UVs), color(col) {}
-    float3 pos;
-    float3 norm;
-    float2 UV;
-    float3 color;
-};
+    m_numIndices = indices.size();
+
+    m_indicesBuf.create();
+    m_indicesBuf.bind();
+    m_indicesBuf.allocate(indices.data(), sizeof(uint) * m_numIndices);
+
+    m_dataBuf.create();
+    m_dataBuf.bind();
+    m_dataBuf.allocate(vertices.data(), sizeof(Vertex) * vertices.size());
+}
+
+Mesh::~Mesh()
+{
+    m_dataBuf.destroy();
+    m_dataBuf.destroy();
+}
+
+QMatrix4x4 Mesh::GetTransform()
+{
+    QMatrix4x4 ret;
+    ret.setToIdentity();
+    ret.scale(m_scale);
+    ret.rotate(m_rotation);
+    ret.translate(m_position);
+    return ret;
+}
+
+
 
 BasicGLWidget::BasicGLWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
@@ -38,29 +64,12 @@ BasicGLWidget::BasicGLWidget(QWidget *parent) : QOpenGLWidget(parent)
 	// Screen
 	m_width = 500;
 	m_height = 500;
-
-    //Camera
-
-    /*m_ar;
-    m_fov;
-    m_fovIni;
-    m_zNear;
-    m_zFar;
-    m_radsZoom;
-    m_xPan;
-    m_yPan;*/
 	
 	// Scene
 	m_sceneCenter = glm::vec3(0.0f, 0.0f, 0.0f);
 	m_sceneRadius = 50.0f;
 	m_bgColor = Qt::black;
 	m_backFaceCulling = false;
-
-    // Mouse
-    /*m_xClick;
-    m_yClick;
-    m_xRot;
-    m_yRot;*/
 
 	// Shaders
 	m_program = nullptr;
@@ -90,10 +99,6 @@ void BasicGLWidget::cleanup()
 {
 	makeCurrent();
 	
-	glDisableVertexAttribArray(0);
-	glDeleteBuffers(1, &m_buf_data);
-	glDeleteBuffers(1, &m_buf_indices);
-	
 	if (m_program == nullptr)
         return;
     
@@ -115,10 +120,11 @@ void BasicGLWidget::initializeGL()
     connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &BasicGLWidget::cleanup);
     initializeOpenGLFunctions();
  	loadShaders();
-	createBuffersScene();
-	computeBBoxScene();
 	projectionTransform();
 	viewTransform();
+
+    computeBBoxScene();
+    createBoxScene();
 }
 
 void BasicGLWidget::paintGL()
@@ -139,28 +145,30 @@ void BasicGLWidget::paintGL()
 	//Quad drawing
 	m_program->bind();
 
-	glBindBuffer(GL_ARRAY_BUFFER, m_buf_data);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_buf_indices);
+    for (auto mesh : m_meshes)
+    {
+        mesh->m_dataBuf.bind();
+        mesh->m_indicesBuf.bind();
 
-	glVertexAttribPointer(m_vertexLoc, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)0);
-    glEnableVertexAttribArray(m_vertexLoc);
+        glVertexAttribPointer(m_vertexLoc, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)0);
+        glEnableVertexAttribArray(m_vertexLoc);
 
-	glVertexAttribPointer(m_normalLoc, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(m_normalLoc);
+        glVertexAttribPointer(m_normalLoc, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(m_normalLoc);
 
-	glVertexAttribPointer(m_UVLoc, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(m_UVLoc);
+        glVertexAttribPointer(m_UVLoc, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(6 * sizeof(float)));
+        glEnableVertexAttribArray(m_UVLoc);
 
-	glVertexAttribPointer(m_colorLoc, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(8 * sizeof(float)));
-    glEnableVertexAttribArray(m_colorLoc);
+        glVertexAttribPointer(m_colorLoc, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(8 * sizeof(float)));
+        glEnableVertexAttribArray(m_colorLoc);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	// Apply the geometric transforms to the scene (position/orientation)
-	sceneTransform();
+        // Apply the geometric transforms to the scene (position/orientation)
+        meshTransform(mesh);
 
-	glDrawElements(GL_TRIANGLES,(GLint)m_nIndices, GL_UNSIGNED_INT, (void*)0);
-
+        glDrawElements(GL_TRIANGLES, (GLint)mesh->m_numIndices, GL_UNSIGNED_INT, (void*)0);
+    }
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -375,10 +383,9 @@ void BasicGLWidget::changeBackgroundColor(QColor color)
 	update();
 }
 
-void BasicGLWidget::createBuffersScene()
+void BasicGLWidget::createBoxScene()
 {
-	
-    // TO DO: Create the buffers, initialize VAO, VBOs, etc.
+
     std::vector<Vertex> vertices;
     std::vector<uint> indices = {
         0, 2, 1,
@@ -410,17 +417,9 @@ void BasicGLWidget::createBuffersScene()
         { 1.f, 0.f, 0.f }
         });
 
-    m_nIndices = indices.size();
-
-    glGenBuffers(1, &m_buf_indices);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_buf_indices);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * m_nIndices, indices.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    glGenBuffers(1, &m_buf_data);
-    glBindBuffer(GL_ARRAY_BUFFER, m_buf_data);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    MeshPtr p = std::make_shared<Mesh>(vertices, indices);
+    p->m_position.setZ(-40);
+    m_meshes.push_back(p);
 }
 
 void BasicGLWidget::computeBBoxScene()
@@ -430,16 +429,10 @@ void BasicGLWidget::computeBBoxScene()
 	m_sceneCenter = glm::vec3(0.0f, 0.0f, 0.0f);
 }
 
-void BasicGLWidget::sceneTransform()
+void BasicGLWidget::meshTransform(MeshPtr mesh)
 {
-	QMatrix4x4 geomTransform;
-	geomTransform.setToIdentity();
-    geomTransform.translate(QVector3D(0.f, 0.f, -40.f));
-
-	// TO DO: Rotations of the scene (WTF: rotate the damn camera not the scene for fuck sake)
-
 	// Send the matrix to the shader
-	m_program->setUniformValue(m_transLoc, geomTransform);
+	m_program->setUniformValue(m_transLoc, mesh->GetTransform());
 }
 
 void BasicGLWidget::computeFps() 

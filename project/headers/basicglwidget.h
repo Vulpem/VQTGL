@@ -16,8 +16,50 @@
 #include <QWheelEvent>
 #include <qtimer.h>
 
+#include <memory>
+
 #include "glm\glm.hpp"
 #include "glm\gtc\matrix_transform.hpp"
+
+struct float3
+{
+    float3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
+    float x, y, z;
+};
+
+struct float2
+{
+    float2(float _x, float _y) : x(_x), y(_y) {}
+    float x, y;
+};
+
+struct Vertex
+{
+    Vertex(float3 position, float3 normal = { 0.f,0.f,-1.f }, float2 UVs = { 0.f,0.f }, float3 col = { 1.f,1.f,1.f });
+    float3 pos;
+    float3 norm;
+    float2 UV;
+    float3 color;
+};
+
+class Mesh : protected QOpenGLFunctions_3_3_Core
+{
+public:
+    Mesh(std::vector<Vertex> vertices, std::vector<uint> indices);
+    ~Mesh();
+
+    QMatrix4x4 GetTransform();
+
+    QVector3D m_position;
+    QVector3D m_scale;
+    QQuaternion m_rotation;
+
+    QOpenGLBuffer m_dataBuf;
+    QOpenGLBuffer m_indicesBuf;
+    uint m_numIndices;
+};
+
+typedef std::shared_ptr<Mesh> MeshPtr;
 
 class BasicGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
 {
@@ -59,9 +101,9 @@ private:
 
 	// Scene
 	void changeBackgroundColor(QColor color);
-	void createBuffersScene();
+	void createBoxScene();
 	void computeBBoxScene();
-	void sceneTransform(); // Position and orientation of the scene
+	void meshTransform(MeshPtr mesh); // Position and orientation of the scene
 
 	// FPS
 	void computeFps();
@@ -82,11 +124,12 @@ private:
 	float m_xPan;
 	float m_yPan;
 
+    std::vector<MeshPtr> m_meshes;
+
 	// Scene
 	glm::vec3 m_sceneCenter;
 	float m_sceneRadius;
-	GLuint m_buf_data, m_buf_indices;
-	size_t m_nIndices;
+
 	QColor m_bgColor;
 	bool m_backFaceCulling = false;
 
