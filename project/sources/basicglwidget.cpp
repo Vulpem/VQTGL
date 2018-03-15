@@ -271,8 +271,8 @@ void BasicGLWidget::mouseMoveEvent(QMouseEvent *event)
 	else if (event->buttons() & Qt::MiddleButton)
 	{
 		QVector3D& pos = (*m_meshes.begin())->m_position;
-		pos.setX(pos.x() + dx / 4);
-		pos.setY(pos.y() - dy / 4);
+		pos.setX(pos.x() + dx / 4.f);
+		pos.setY(pos.y() - dy / 4.f);
 		needsUpdate = true;
 	}
 	m_mouseLastPos = event->pos();
