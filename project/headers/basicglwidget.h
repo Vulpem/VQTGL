@@ -52,7 +52,7 @@ public:
 
     QVector3D m_position;
     QVector3D m_scale;
-    QQuaternion m_rotation;
+    QVector3D m_rotation;
 
     QOpenGLBuffer m_dataBuf;
     QOpenGLBuffer m_indicesBuf;
@@ -138,6 +138,7 @@ private:
 	int m_yClick;
 	float m_xRot;
 	float m_yRot;
+	QPoint m_mouseLastPos;
 
 	// Shaders
     QOpenGLShaderProgram *m_program;

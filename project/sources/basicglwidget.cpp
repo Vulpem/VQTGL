@@ -22,7 +22,7 @@ Vertex::Vertex(float3 position, float3 normal, float2 UVs, float3 col)
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<uint> indices)
     : m_position(0.f, 0.f, 0.f)
     , m_scale(1.f, 1.f, 1.f)
-    , m_rotation(0.f, 0.f, 0.f, 1.f)
+    , m_rotation(0.f, 0.f, 0.f)
     , m_dataBuf(QOpenGLBuffer::Type::VertexBuffer)
     , m_indicesBuf(QOpenGLBuffer::Type::IndexBuffer)
 {
@@ -46,13 +46,12 @@ Mesh::~Mesh()
 QMatrix4x4 Mesh::GetTransform()
 {
     QMatrix4x4 ret;
-    ret.setToIdentity();
+	ret.setToIdentity();
+	ret.translate(m_position);
+	ret.rotate(QQuaternion::fromEulerAngles(m_rotation));
     ret.scale(m_scale);
-    ret.rotate(m_rotation);
-    ret.translate(m_position);
     return ret;
 }
-
 
 
 BasicGLWidget::BasicGLWidget(QWidget *parent) : QOpenGLWidget(parent)
@@ -167,7 +166,7 @@ void BasicGLWidget::paintGL()
         // Apply the geometric transforms to the scene (position/orientation)
         meshTransform(mesh);
 
-        glDrawElements(GL_TRIANGLES, (GLint)mesh->m_numIndices, GL_UNSIGNED_INT, (void*)0);
+        glDrawElements(GL_QUADS, (GLint)mesh->m_numIndices, GL_UNSIGNED_INT, (void*)0);
     }
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -255,7 +254,24 @@ void BasicGLWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	
 	// TO DO: Rotation of the scene and PAN
+	int dx = event->x() - m_mouseLastPos.x();
+	int dy = event->y() - m_mouseLastPos.y();
 
+	if (event->buttons() & Qt::LeftButton) {
+		QVector3D rot = (*m_meshes.begin())->m_rotation;
+		rot.setX(rot.x() + 8 * dy);
+		rot.setY(rot.y() + 8 * dx);
+		(*m_meshes.begin())->m_rotation = rot;
+		update();
+	}
+	else if (event->buttons() & Qt::RightButton) {
+		QVector3D rot = (*m_meshes.begin())->m_rotation;
+		rot.setX(rot.x() + 8 * dy);
+		rot.setZ(rot.z() + 8 * dx);
+		(*m_meshes.begin())->m_rotation = rot;
+		update();
+	}
+	m_mouseLastPos = event->pos();
 }
 
 void BasicGLWidget::mouseReleaseEvent(QMouseEvent *event)
@@ -388,8 +404,7 @@ void BasicGLWidget::createBoxScene()
 
     std::vector<Vertex> vertices;
     std::vector<uint> indices = {
-        0, 2, 1,
-        1, 2, 3
+       0,2,3,1
     };
 
     vertices.push_back({
