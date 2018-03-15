@@ -251,25 +251,35 @@ void BasicGLWidget::mousePressEvent(QMouseEvent *event)
 
 void BasicGLWidget::mouseMoveEvent(QMouseEvent *event)
 {
+	bool needsUpdate = false;
 	// TO DO: Rotation of the scene and PAN
 	int dx = event->x() - m_mouseLastPos.x();
 	int dy = event->y() - m_mouseLastPos.y();
 
 	if (event->buttons() & Qt::LeftButton) {
-		QVector3D rot = (*m_meshes.begin())->m_rotation;
+		QVector3D& rot = (*m_meshes.begin())->m_rotation;
 		rot.setX(rot.x() + 8 * dy);
 		rot.setY(rot.y() + 8 * dx);
-		(*m_meshes.begin())->m_rotation = rot;
-		update();
+		needsUpdate = true;
 	}
 	else if (event->buttons() & Qt::RightButton) {
-		QVector3D rot = (*m_meshes.begin())->m_rotation;
+		QVector3D& rot = (*m_meshes.begin())->m_rotation;
 		rot.setX(rot.x() + 8 * dy);
 		rot.setZ(rot.z() + 8 * dx);
-		(*m_meshes.begin())->m_rotation = rot;
-		update();
+		needsUpdate = true;
+	}
+	else if (event->buttons() & Qt::MiddleButton)
+	{
+		QVector3D& pos = (*m_meshes.begin())->m_position;
+		pos.setX(pos.x() + dx);
+		pos.setY(pos.y() - dy);
+		needsUpdate = true;
 	}
 	m_mouseLastPos = event->pos();
+	if (needsUpdate)
+	{
+		update();
+	}
 }
 
 void BasicGLWidget::mouseReleaseEvent(QMouseEvent *event)
