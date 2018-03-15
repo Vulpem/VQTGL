@@ -42,7 +42,7 @@ struct Vertex
     float3 color;
 };
 
-class Mesh : protected QOpenGLFunctions_3_3_Core
+class Mesh
 {
 public:
     Mesh(std::vector<Vertex> vertices, std::vector<uint> indices);
