@@ -49,6 +49,7 @@ public:
     ~Mesh();
 
     QMatrix4x4 GetTransform();
+	uint GetNIndices() { return m_numIndices; }
 
     QVector3D m_position;
     QVector3D m_scale;
@@ -56,6 +57,7 @@ public:
 
     QOpenGLBuffer m_dataBuf;
     QOpenGLBuffer m_indicesBuf;
+private:
     uint m_numIndices;
 };
 

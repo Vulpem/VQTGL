@@ -166,10 +166,8 @@ void BasicGLWidget::paintGL()
         // Apply the geometric transforms to the scene (position/orientation)
         meshTransform(mesh);
 
-        glDrawElements(GL_QUADS, (GLint)mesh->m_numIndices, GL_UNSIGNED_INT, (void*)0);
+        glDrawElements(GL_TRIANGLES, (GLint)mesh->GetNIndices(), GL_UNSIGNED_INT, (void*)0);
     }
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	m_program->release();
 
@@ -258,14 +256,14 @@ void BasicGLWidget::mouseMoveEvent(QMouseEvent *event)
 
 	if (event->buttons() & Qt::LeftButton) {
 		QVector3D& rot = (*m_meshes.begin())->m_rotation;
-		rot.setX(rot.x() + 8 * dy);
-		rot.setY(rot.y() + 8 * dx);
+		rot.setX(rot.x() + 8.f * dy);
+		rot.setY(rot.y() + 8.f * dx);
 		needsUpdate = true;
 	}
 	else if (event->buttons() & Qt::RightButton) {
 		QVector3D& rot = (*m_meshes.begin())->m_rotation;
-		rot.setX(rot.x() + 8 * dy);
-		rot.setZ(rot.z() + 8 * dx);
+		rot.setX(rot.x() + 8.f * dy);
+		rot.setZ(rot.z() + 8.f * dx);
 		needsUpdate = true;
 	}
 	else if (event->buttons() & Qt::MiddleButton)
@@ -292,7 +290,6 @@ void BasicGLWidget::wheelEvent(QWheelEvent* event)
 {
 	// TO DO: Change the fov of the camera to zoom in and out	
 	const int degrees = event->delta() / 8;
-	
 	if (degrees)
 	{
 		(*m_meshes.begin())->m_position.setZ((*m_meshes.begin())->m_position.z() + degrees / 10);
@@ -307,10 +304,12 @@ void BasicGLWidget::loadShaders()
 	// Declaration of the shaders
 	QOpenGLShader vs(QOpenGLShader::Vertex, this);
 	QOpenGLShader fs(QOpenGLShader::Fragment, this);
+	QOpenGLShader geom(QOpenGLShader::Geometry, this);
 
 	// Load and compile the shaders
 	vs.compileSourceFile("./project/shaders/basicgl.vert");
 	fs.compileSourceFile("./project/shaders/basicgl.frag");
+	geom.compileSourceFile("./project/shaders/basicgl.geom");
 
 	// Create the program
 	m_program = new QOpenGLShaderProgram;
@@ -318,6 +317,7 @@ void BasicGLWidget::loadShaders()
 	// Add the shaders
 	m_program->addShader(&fs);
 	m_program->addShader(&vs);
+	m_program->addShader(&geom);
 
 	// Link the program
 	m_program->link();
@@ -416,7 +416,8 @@ void BasicGLWidget::createBoxScene()
 
     std::vector<Vertex> vertices;
     std::vector<uint> indices = {
-       0,2,3,1
+       0, 2, 1,
+	   1, 2, 3
     };
 
     vertices.push_back({

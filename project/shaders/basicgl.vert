@@ -13,14 +13,14 @@ uniform mat4 sceneTransform;
 out vec4 vertexOCS;
 out vec3 normalOCS;
 out vec2 UVOCS;
-out vec4 vertexColor;
+out vec3 vertexColor;
 
 void main()
 {
     normalOCS = normal;
     UVOCS = UV;
     vertexOCS = viewTransform * sceneTransform * vec4(vertex, 1);
-    vertexColor = vec4(color,1);
+    vertexColor = color;
     gl_Position = projTransform * vertexOCS;
 
 }
