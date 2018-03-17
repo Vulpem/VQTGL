@@ -73,6 +73,15 @@ public:
 
     QSize minimumSizeHint() const override;
     QSize sizeHint() const override;
+    MeshPtr AddMesh(const std::vector<Vertex>& vertices, const std::vector<uint>& indices);
+    MeshPtr AddMesh(MeshPtr mesh);
+
+    void RotateAll(QVector3D rotationEuler);
+    void SetRotationAll(QVector3D rotationEuler);
+    void TranslateAll(QVector3D translation);
+    void SetTranslationAll(QVector3D position);
+
+    std::vector<MeshPtr> GetMeshes();
 
 public slots:
     void cleanup();
@@ -83,13 +92,6 @@ protected:
     void initializeGL() override;
 	void paintGL() override;
     void resizeGL(int width, int height) override;
-	
-	// Keyboard and mouse interaction
-	void keyPressEvent(QKeyEvent *event) override;
-	void mousePressEvent(QMouseEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
-	void mouseReleaseEvent(QMouseEvent *event) override;
-	void wheelEvent(QWheelEvent* event) override;
 
 private:
     // Shaders
@@ -103,10 +105,10 @@ private:
 
 	// Scene
 	void changeBackgroundColor(QColor color);
-	void createBoxScene();
 	void computeBBoxScene();
 	void meshTransform(MeshPtr mesh); // Position and orientation of the scene
 
+    void keyPressEvent(QKeyEvent *event);
 	// FPS
 	void computeFps();
 	void showFps();
@@ -123,8 +125,9 @@ private:
 	float m_zNear;
 	float m_zFar;
 	float m_radsZoom;
-	float m_xPan;
-	float m_yPan;
+
+    QVector3D m_cameraPosition;
+    QVector3D m_cameraRotation;
 
     std::vector<MeshPtr> m_meshes;
 
@@ -134,13 +137,6 @@ private:
 
 	QColor m_bgColor;
 	bool m_backFaceCulling = false;
-
-	// Mouse
-	int m_xClick;
-	int m_yClick;
-	float m_xRot;
-	float m_yRot;
-	QPoint m_mouseLastPos;
 
 	// Shaders
     QOpenGLShaderProgram *m_program;

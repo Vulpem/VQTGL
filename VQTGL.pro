@@ -8,7 +8,6 @@ HEADERS       = project/headers/glwidget.h \
                 project/headers/basicwindow.h \
                 project/headers/windowManager.h \
                 project/headers/basicGLwindow.h \
-                project/headers/testingGLwindow.h
 
 SOURCES       = project/main.cpp \
                 project/sources/glwidget.cpp \
@@ -19,7 +18,6 @@ SOURCES       = project/main.cpp \
                 project/sources/basicwindow.cpp \
                 project/sources/windowManager.cpp \
                 project/sources/basicGLwindow.cpp \
-                project/sources/testingGLwindow.cpp
 
 FORMS         = project/forms/basicwindow.ui
 

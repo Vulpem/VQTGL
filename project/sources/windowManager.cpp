@@ -2,7 +2,6 @@
 #include "windowManager.h"
 #include "helloQT.h"
 #include "basicGLwindow.h"
-#include "testingGLwindow.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -83,8 +82,6 @@ void WindowManager::AddWindow(WindowTypes win)
         window = new BasicWindow(); break;
     case WindowTypes::Basic_GL:
         window = new BasicGLWindow(); break;
-    case WindowTypes::Testing_GL:
-        window = new TestingGLWindow(); break;
     }
 
     if (window != nullptr)

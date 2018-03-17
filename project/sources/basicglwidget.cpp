@@ -94,6 +94,61 @@ QSize BasicGLWidget::sizeHint() const
     return QSize(m_width, m_height);
 }
 
+MeshPtr BasicGLWidget::AddMesh(const std::vector<Vertex>& vertices, const std::vector<uint>& indices)
+{
+    MeshPtr p = std::make_shared<Mesh>(vertices, indices);
+    m_meshes.push_back(p);
+    return AddMesh(p);
+}
+
+MeshPtr BasicGLWidget::AddMesh(MeshPtr mesh)
+{
+    m_meshes.push_back(mesh);
+    update();
+    return mesh;
+}
+
+void BasicGLWidget::RotateAll(QVector3D rotationEuler)
+{
+    for (auto mesh : m_meshes)
+    {
+        mesh->m_rotation += rotationEuler;
+    }
+    update();
+}
+
+void BasicGLWidget::SetRotationAll(QVector3D rotationEuler)
+{
+    for (auto mesh : m_meshes)
+    {
+        mesh->m_rotation = rotationEuler;
+    }
+    update();
+}
+
+void BasicGLWidget::TranslateAll(QVector3D translation)
+{
+    for (auto mesh : m_meshes)
+    {
+        mesh->m_position += translation;
+    }
+    update();
+}
+
+void BasicGLWidget::SetTranslationAll(QVector3D position)
+{
+    for (auto mesh : m_meshes)
+    {
+        mesh->m_position = position;
+    }
+    update();
+}
+
+std::vector<MeshPtr> BasicGLWidget::GetMeshes()
+{
+    return m_meshes;
+}
+
 void BasicGLWidget::cleanup()
 {
 	makeCurrent();
@@ -123,7 +178,6 @@ void BasicGLWidget::initializeGL()
 	viewTransform();
 
     computeBBoxScene();
-    createBoxScene();
 }
 
 void BasicGLWidget::paintGL()
@@ -241,62 +295,6 @@ void BasicGLWidget::keyPressEvent(QKeyEvent *event)
 	}
 }
 
-void BasicGLWidget::mousePressEvent(QMouseEvent *event)
-{
-	// TO DO: Rotation of the scene and PAN
-	m_mouseLastPos = event->pos();
-}
-
-void BasicGLWidget::mouseMoveEvent(QMouseEvent *event)
-{
-	bool needsUpdate = false;
-	// TO DO: Rotation of the scene and PAN
-	int dx = event->x() - m_mouseLastPos.x();
-	int dy = event->y() - m_mouseLastPos.y();
-
-	if (event->buttons() & Qt::LeftButton) {
-		QVector3D& rot = (*m_meshes.begin())->m_rotation;
-		rot.setX(rot.x() + 8.f * dy);
-		rot.setY(rot.y() + 8.f * dx);
-		needsUpdate = true;
-	}
-	else if (event->buttons() & Qt::RightButton) {
-		QVector3D& rot = (*m_meshes.begin())->m_rotation;
-		rot.setX(rot.x() + 8.f * dy);
-		rot.setZ(rot.z() + 8.f * dx);
-		needsUpdate = true;
-	}
-	else if (event->buttons() & Qt::MiddleButton)
-	{
-		QVector3D& pos = (*m_meshes.begin())->m_position;
-		pos.setX(pos.x() + dx / 4.f);
-		pos.setY(pos.y() - dy / 4.f);
-		needsUpdate = true;
-	}
-	m_mouseLastPos = event->pos();
-	if (needsUpdate)
-	{
-		update();
-	}
-}
-
-void BasicGLWidget::mouseReleaseEvent(QMouseEvent *event)
-{
-	// TO DO: Rotation of the scene and PAN
-
-}
-
-void BasicGLWidget::wheelEvent(QWheelEvent* event)
-{
-	// TO DO: Change the fov of the camera to zoom in and out	
-	const int degrees = event->delta() / 8;
-	if (degrees)
-	{
-		(*m_meshes.begin())->m_position.setZ((*m_meshes.begin())->m_position.z() + degrees / 10);
-		update();
-	}
-}
-
 void BasicGLWidget::loadShaders()
 {
 	std::cout << "Loading Shaders: \n";
@@ -395,9 +393,8 @@ void BasicGLWidget::viewTransform()
 	// Set the camera position
 	QMatrix4x4 view;
 	view.setToIdentity();
-	view.translate(0, 0, -2.0f);
-
-	// TO DO: Camera placement and PAN
+	view.translate(m_cameraPosition);
+    view.rotate(QQuaternion::fromEulerAngles(m_cameraRotation));
 
 	// Send the matrix to the shader
 	m_program->setUniformValue(m_viewLoc, view);
@@ -409,45 +406,6 @@ void BasicGLWidget::changeBackgroundColor(QColor color)
 {
 	m_bgColor = color;
 	update();
-}
-
-void BasicGLWidget::createBoxScene()
-{
-
-    std::vector<Vertex> vertices;
-    std::vector<uint> indices = {
-       0, 2, 1,
-	   1, 2, 3
-    };
-
-    vertices.push_back({
-        {-10.f, +10.f, 0.f},
-        {0.f,0.f,-1.f},
-        {0.f,0.f},
-        {0.f, 1.f, 0.f}
-        });
-    vertices.push_back({
-        { +10.f, +10.f, 0.f },
-        { 0.f,0.f,-1.f },
-        { 1.f,0.f },
-        { 0.f, 1.f, 1.f }
-        });
-    vertices.push_back({
-        { -10.f, -10.f, -0.f },
-        { 0.f,0.f,-1.f },
-        { 0.f,1.f },
-        { 0.f, 0.f, 1.f }
-        });
-    vertices.push_back({
-        { +10.f, -10.f, -0.f },
-        { 0.f,0.f,-1.f },
-        { 1.f,1.f },
-        { 1.f, 0.f, 0.f }
-        });
-
-    MeshPtr p = std::make_shared<Mesh>(vertices, indices);
-    p->m_position.setZ(-40);
-    m_meshes.push_back(p);
 }
 
 void BasicGLWidget::computeBBoxScene()

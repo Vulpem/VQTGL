@@ -15,7 +15,18 @@ public:
     ~BasicGLWindow();
 
 protected:
+    void createBoxScene();
+
+    // Keyboard and mouse interaction
+    void keyPressEvent(QKeyEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void wheelEvent(QWheelEvent* event) override;
+
 	Ui::BasicWindow m_ui;
 	BasicGLWidget* m_glWidget;
+
+    QPoint m_mouseLastPos;
 };
 #endif

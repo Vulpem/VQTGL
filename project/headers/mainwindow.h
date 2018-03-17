@@ -68,7 +68,7 @@ public:
 
 	private slots:
 	void AddHelloQT();
-	void AddTestingGL();
+	void AddGLWindow();
 
 private:
     WindowManager * manager;

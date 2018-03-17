@@ -73,13 +73,13 @@ MainWindow::MainWindow()
 	QAction *basicWindow = new QAction(menuWindow);
 	basicWindow->setText(tr("Basic Window"));
 	addMenu->addAction(basicWindow);
-	connect(basicWindow, &QAction::triggered, this, &MainWindow::AddTestingGL);
+	connect(basicWindow, &QAction::triggered, this, &MainWindow::AddGLWindow);
 
 	setMenuBar(menuBar);
     manager = new WindowManager();
 	setCentralWidget(manager);
 
-	AddTestingGL();
+    AddGLWindow();
 }
 
 void MainWindow::AddHelloQT()
@@ -92,7 +92,7 @@ void MainWindow::closeEvent(QCloseEvent * event)
     manager->CloseAll();
 }
 
-void MainWindow::AddTestingGL()
+void MainWindow::AddGLWindow()
 {
-	manager->AddWindow(WindowTypes::Testing_GL);
+	manager->AddWindow(WindowTypes::Basic_GL);
 }
