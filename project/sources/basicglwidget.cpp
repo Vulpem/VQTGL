@@ -163,6 +163,7 @@ void BasicGLWidget::SetCameraPosition(QVector3D position)
 {
     m_cameraPosition = position;
     viewTransform();
+    update();
 }
 
 void BasicGLWidget::TranslateCamera(QVector3D translation)
@@ -179,11 +180,33 @@ void BasicGLWidget::SetCameraRotation(QVector3D rotation)
 {
     m_cameraRotation = rotation;
     viewTransform();
+    update();
 }
 
 void BasicGLWidget::RotateCamera(QVector3D rotation)
 {
     SetCameraRotation(m_cameraRotation + rotation);
+}
+
+QVector3D BasicGLWidget::GetCameraForward()
+{
+    QMatrix4x4 view;
+    view.rotate(QQuaternion::fromEulerAngles(-m_cameraRotation));
+    return QVector3D(0.f, 0.f, 1.f) * view;
+}
+
+QVector3D BasicGLWidget::GetCameraRight()
+{
+    QMatrix4x4 view;
+    view.rotate(QQuaternion::fromEulerAngles(-m_cameraRotation));
+    return QVector3D(-1.f, 0.f, 0.f) * view;
+}
+
+QVector3D BasicGLWidget::GetCameraUp()
+{
+    QMatrix4x4 view;
+    view.rotate(QQuaternion::fromEulerAngles(-m_cameraRotation));
+    return QVector3D(0.f, -1.f, 0.f) * view;
 }
 
 void BasicGLWidget::cleanup()
@@ -382,17 +405,20 @@ void BasicGLWidget::viewTransform()
 {
     m_program->bind();
 
-	// Set the camera position
-	QMatrix4x4 view;
-	view.setToIdentity();
-	view.translate(m_cameraPosition);
-    view.translate(0.f,0.f,-2.f);
-    view.rotate(QQuaternion::fromEulerAngles(m_cameraRotation));
-
 	// Send the matrix to the shader
-	m_program->setUniformValue(m_viewLoc, view);
+	m_program->setUniformValue(m_viewLoc, GetViewMatrix());
 
     m_program->release();
+}
+
+QMatrix4x4 BasicGLWidget::GetViewMatrix()
+{
+    QMatrix4x4 view;
+    view.setToIdentity();
+    view.translate(m_cameraPosition);
+    view.translate(0.f, 0.f, -2.f);
+    view.rotate(QQuaternion::fromEulerAngles(m_cameraRotation));
+    return view;
 }
 
 void BasicGLWidget::changeBackgroundColor(QColor color)

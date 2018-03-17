@@ -42,6 +42,6 @@ protected:
 
     //Input
     QPoint m_mouseLastPos;
-    bool movingCamera;
+    bool m_movingCamera;
 };
 #endif

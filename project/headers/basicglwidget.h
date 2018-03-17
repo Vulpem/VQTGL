@@ -99,6 +99,10 @@ public:
     void SetCameraRotation(QVector3D rotation);
     void RotateCamera(QVector3D rotation);
 
+    QVector3D GetCameraForward();
+    QVector3D GetCameraRight();
+    QVector3D GetCameraUp();
+
     //Shaders
     void reloadShaders();
 
@@ -123,6 +127,7 @@ private:
 	// Camera
 	void projectionTransform(); // Type of camera
 	void viewTransform(); // Position of the camera
+    QMatrix4x4 GetViewMatrix();
 
 	// Scene
 	void computeBBoxScene();

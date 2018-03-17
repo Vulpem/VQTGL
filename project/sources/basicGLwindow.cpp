@@ -60,8 +60,8 @@ BasicGLWindow::~BasicGLWindow()
 
 void BasicGLWindow::SLOT_MoveSceneCheckbox(int val)
 {
-    movingCamera = !val;
-    if (movingCamera)
+    m_movingCamera = !val;
+    if (m_movingCamera)
     {
         m_moveCameraCheckbox->setCheckState(Qt::CheckState::Checked);
     }
@@ -73,8 +73,8 @@ void BasicGLWindow::SLOT_MoveSceneCheckbox(int val)
 
 void BasicGLWindow::SLOT_MoveCameraCheckbox(int val)
 {
-    movingCamera = val;
-    if (movingCamera)
+    m_movingCamera = val;
+    if (m_movingCamera)
     {
         m_moveSceneCheckbox->setCheckState(Qt::CheckState::Unchecked);
     }
@@ -160,6 +160,24 @@ void BasicGLWindow::keyPressEvent(QKeyEvent * event)
         std::cout << "-- AGEn message --: Reload shaders" << std::endl;
         m_glWidget->reloadShaders();
         break;
+    case Qt::Key_W:
+        m_glWidget->TranslateCamera(m_glWidget->GetCameraForward());
+        break;
+    case Qt::Key_S:
+        m_glWidget->TranslateCamera(-m_glWidget->GetCameraForward());
+        break;
+    case Qt::Key_D:
+        m_glWidget->TranslateCamera(m_glWidget->GetCameraRight());
+        break;
+    case Qt::Key_A:
+        m_glWidget->TranslateCamera(-m_glWidget->GetCameraRight());
+        break;
+    case Qt::Key_Q:
+        m_glWidget->TranslateCamera(m_glWidget->GetCameraUp());
+        break;
+    case Qt::Key_E:
+        m_glWidget->TranslateCamera(-m_glWidget->GetCameraUp());
+        break;
     default:
         event->ignore();
         break;
@@ -175,16 +193,23 @@ void BasicGLWindow::mouseMoveEvent(QMouseEvent * event)
 {
     int dx = event->x() - m_mouseLastPos.x();
     int dy = event->y() - m_mouseLastPos.y();
-
     if (event->buttons() & Qt::LeftButton) {
-        m_glWidget->RotateAll(QVector3D(8.f * dy, 8.f * dx, 0.f));
+        if(m_movingCamera)
+            m_glWidget->RotateCamera(QVector3D(dy, dx, 0.f));
+        else
+            m_glWidget->RotateAll(QVector3D(dy, dx, 0.f));
     }
+
     else if (event->buttons() & Qt::RightButton) {
-        m_glWidget->RotateAll(QVector3D(8.f * dy, 0.f, 8.f * dx));
+        if(!m_movingCamera)
+            m_glWidget->RotateAll(QVector3D(dy, 0.f, dx));
     }
     else if (event->buttons() & Qt::MiddleButton)
     {
-        m_glWidget->TranslateAll(QVector3D(dx / 4.f, -dy / 4.f, 0.f));
+        if (m_movingCamera)
+            m_glWidget->TranslateCamera(QVector3D(-dx, -dy, 0.f));
+        else
+            m_glWidget->TranslateAll(QVector3D(dx / 4.f, -dy / 4.f, 0.f));
     }
     m_mouseLastPos = event->pos();
 }
@@ -197,5 +222,7 @@ void BasicGLWindow::wheelEvent(QWheelEvent * event)
 {
     const int degrees = event->delta() / 8;
     if (degrees)
+    {
         m_glWidget->TranslateAll(QVector3D(0.f, 0.f, degrees / 10.f));
+    }
 }
