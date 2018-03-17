@@ -428,4 +428,5 @@ void BasicGLWidget::computeFps()
         m_FPSTimer.restart();
     }
     m_frameCount++;
+    emit(UpdatedFPS(m_FPS));
 }

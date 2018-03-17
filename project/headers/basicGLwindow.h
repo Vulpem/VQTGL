@@ -3,8 +3,11 @@
 
 #include "basicwindow.h"
 
+
 class MainWindow;
 class BasicGLWidget;
+class QLabel;
+class QCheckBox;
 
 class BasicGLWindow : public BasicWindow
 {
@@ -13,6 +16,13 @@ class BasicGLWindow : public BasicWindow
 public:
     BasicGLWindow(QString name = "BasicGLWindow");
     ~BasicGLWindow();
+
+public slots:
+void SLOT_MoveSceneCheckbox(int val);
+void SLOT_MoveCameraCheckbox(int val);
+void SLOT_UpdateFPS(float FPS);
+
+signals:
 
 protected:
     void createBoxScene();
@@ -24,16 +34,14 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
     void wheelEvent(QWheelEvent* event) override;
 
-    // FPS
-    void showFps();
-
 	Ui::BasicWindow m_ui;
 	BasicGLWidget* m_glWidget;
+    QLabel* m_fpsLabel;
+    QCheckBox* m_moveSceneCheckbox;
+    QCheckBox* m_moveCameraCheckbox;
 
     //Input
     QPoint m_mouseLastPos;
-
-    // FPS
-    bool m_showFps;
+    bool movingCamera;
 };
 #endif

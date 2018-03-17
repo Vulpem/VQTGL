@@ -109,6 +109,7 @@ public slots:
     void cleanup();
 
 signals:
+    void UpdatedFPS(float fps);
 
 protected:
     void initializeGL() override;

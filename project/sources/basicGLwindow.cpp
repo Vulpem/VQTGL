@@ -1,6 +1,11 @@
 #include "../headers/basicglwidget.h"
 #include "../headers/basicGLwindow.h"
+
 #include <qlayout.h>
+#include <qlabel.h>
+#include <qinputdialog.h>
+#include <qspinbox.h>
+#include <qcheckbox.h>
 
 #include <iostream>
 
@@ -9,19 +14,40 @@ BasicGLWindow::BasicGLWindow(QString name)
 {
     m_ui.setupUi(this);
 
+    m_glWidget = new BasicGLWidget;
+
+    QVBoxLayout* layoutInputs = new QVBoxLayout();
 	// Insert the m_glWidget in the GUI
-	m_glWidget = new BasicGLWidget;
-	QVBoxLayout* layoutFrame = new QVBoxLayout(m_ui.qGLFrame);
+	QHBoxLayout* layoutFrame = new QHBoxLayout(m_ui.qGLFrame);
 	layoutFrame->setMargin(0);
 	layoutFrame->addWidget(m_glWidget);
-	m_glWidget->show();
+    layoutFrame->addLayout(layoutInputs);
+
+    QLabel* fps = new QLabel("Fps:");
+    layoutInputs->addWidget(fps);
+    m_fpsLabel = new QLabel("00");
+    layoutInputs->addWidget(m_fpsLabel);
+
+    QLabel* title = new QLabel("Controls:");
+    layoutInputs->addWidget(title);
+
+    m_moveSceneCheckbox = new QCheckBox("Move Scene");
+    layoutInputs->addWidget(m_moveSceneCheckbox);
+
+    m_moveCameraCheckbox = new QCheckBox("Move Camera");
+    layoutInputs->addWidget(m_moveCameraCheckbox);
+
+    layoutInputs->addStretch(1);
+
+
+    connect(m_moveCameraCheckbox, &QCheckBox::stateChanged, this, &BasicGLWindow::SLOT_MoveCameraCheckbox);
+    connect(m_moveSceneCheckbox, &QCheckBox::stateChanged, this, &BasicGLWindow::SLOT_MoveSceneCheckbox);
+    connect(m_glWidget, &BasicGLWidget::UpdatedFPS, this, &BasicGLWindow::SLOT_UpdateFPS);
+    m_moveSceneCheckbox->setCheckState(Qt::CheckState::Checked);
 
     createBoxScene();
 
 	show();
-
-    // FPS
-    m_showFps = false;
 }
 
 BasicGLWindow::~BasicGLWindow()
@@ -30,6 +56,37 @@ BasicGLWindow::~BasicGLWindow()
 		delete m_glWidget;
 		m_glWidget = nullptr;
 	}
+}
+
+void BasicGLWindow::SLOT_MoveSceneCheckbox(int val)
+{
+    movingCamera = !val;
+    if (movingCamera)
+    {
+        m_moveCameraCheckbox->setCheckState(Qt::CheckState::Checked);
+    }
+    else
+    {
+        m_moveCameraCheckbox->setCheckState(Qt::CheckState::Unchecked);
+    }
+}
+
+void BasicGLWindow::SLOT_MoveCameraCheckbox(int val)
+{
+    movingCamera = val;
+    if (movingCamera)
+    {
+        m_moveSceneCheckbox->setCheckState(Qt::CheckState::Unchecked);
+    }
+    else
+    {
+        m_moveSceneCheckbox->setCheckState(Qt::CheckState::Checked);
+    }
+}
+
+void BasicGLWindow::SLOT_UpdateFPS(float FPS)
+{
+    m_fpsLabel->setText(QString::number(FPS));
 }
 
 void BasicGLWindow::createBoxScene()
@@ -77,13 +134,6 @@ void BasicGLWindow::keyPressEvent(QKeyEvent * event)
         std::cout << "-- AGEn message --: Change background color" << std::endl;
         m_glWidget->changeBackgroundColor(QColor::fromRgb(rand() % 255, rand() % 255, rand() % 255));
         break;
-    case Qt::Key_F:
-        // Enable/Disable frames per second
-        m_showFps = !m_showFps;
-
-        // TO DO: Show or hide the FPS information
-
-        break;
     case Qt::Key_H:
         // Show the help message
         std::cout << "-- AGEn message --: Help" << std::endl;
@@ -114,11 +164,6 @@ void BasicGLWindow::keyPressEvent(QKeyEvent * event)
         event->ignore();
         break;
     }
-}
-
-void BasicGLWindow::showFps()
-{
-    //TODO
 }
 
 void BasicGLWindow::mousePressEvent(QMouseEvent * event)
