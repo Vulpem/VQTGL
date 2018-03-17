@@ -2,6 +2,8 @@
 #include "../headers/basicGLwindow.h"
 #include <qlayout.h>
 
+#include <iostream>
+
 BasicGLWindow::BasicGLWindow(QString name)
     : BasicWindow(name)
 {
@@ -17,6 +19,9 @@ BasicGLWindow::BasicGLWindow(QString name)
     createBoxScene();
 
 	show();
+
+    // FPS
+    m_showFps = false;
 }
 
 BasicGLWindow::~BasicGLWindow()
@@ -66,6 +71,54 @@ void BasicGLWindow::createBoxScene()
 
 void BasicGLWindow::keyPressEvent(QKeyEvent * event)
 {
+    switch (event->key()) {
+    case Qt::Key_B:
+        // Change the background color
+        std::cout << "-- AGEn message --: Change background color" << std::endl;
+        m_glWidget->changeBackgroundColor(QColor::fromRgb(rand() % 255, rand() % 255, rand() % 255));
+        break;
+    case Qt::Key_F:
+        // Enable/Disable frames per second
+        m_showFps = !m_showFps;
+
+        // TO DO: Show or hide the FPS information
+
+        break;
+    case Qt::Key_H:
+        // Show the help message
+        std::cout << "-- AGEn message --: Help" << std::endl;
+        std::cout << std::endl;
+        std::cout << "Keys used in the application:" << std::endl;
+        std::cout << std::endl;
+        std::cout << "-B:  change background color" << std::endl;
+        std::cout << "-F:  show frames per second (fps)" << std::endl;
+        std::cout << "-H:  show this help" << std::endl;
+        std::cout << "-R:  reset the camera parameters" << std::endl;
+        std::cout << "-F5: reload shaders" << std::endl;
+        std::cout << std::endl;
+        std::cout << "IMPORTANT: the focus must be set to the glwidget to work" << std::endl;
+        std::cout << std::endl;
+        break;
+    case Qt::Key_R:
+        // Reset the camera and scene parameters
+        std::cout << "-- AGEn message --: Reset camera" << std::endl;
+        m_glWidget->ResetCamera();
+        m_glWidget->ResetScene();
+        break;
+    case Qt::Key_F5:
+        // Reload shaders
+        std::cout << "-- AGEn message --: Reload shaders" << std::endl;
+        m_glWidget->reloadShaders();
+        break;
+    default:
+        event->ignore();
+        break;
+    }
+}
+
+void BasicGLWindow::showFps()
+{
+    //TODO
 }
 
 void BasicGLWindow::mousePressEvent(QMouseEvent * event)

@@ -73,18 +73,23 @@ public:
 
     QSize minimumSizeHint() const override;
     QSize sizeHint() const override;
+
+    //Meshes
     MeshPtr AddMesh(const std::vector<Vertex>& vertices, const std::vector<uint>& indices);
     MeshPtr AddMesh(MeshPtr mesh);
+    std::vector<MeshPtr> GetMeshes();
 
+    //Scene
     void RotateAll(QVector3D rotationEuler);
     void SetRotationAll(QVector3D rotationEuler);
     void TranslateAll(QVector3D translation);
     void SetTranslationAll(QVector3D position);
     void ResetScene();
 
-    void ResetCamera();
+    void changeBackgroundColor(QColor color);
 
-    std::vector<MeshPtr> GetMeshes();
+    //Camera
+    void ResetCamera();
 
     QVector3D GetCameraPosition();
     void SetCameraPosition(QVector3D position);
@@ -93,6 +98,12 @@ public:
     QVector3D GetCameraRotation();
     void SetCameraRotation(QVector3D rotation);
     void RotateCamera(QVector3D rotation);
+
+    //Shaders
+    void reloadShaders();
+
+    //FPS
+    float GetFPS();
 
 public slots:
     void cleanup();
@@ -107,22 +118,16 @@ protected:
 private:
     // Shaders
 	void loadShaders();
-	void reloadShaders();
 
 	// Camera
 	void projectionTransform(); // Type of camera
 	void viewTransform(); // Position of the camera
 
 	// Scene
-	void changeBackgroundColor(QColor color);
 	void computeBBoxScene();
 	void meshTransform(MeshPtr mesh); // Position and orientation of the scene
+    void computeFps();
 
-    void keyPressEvent(QKeyEvent *event);
-	// FPS
-	void computeFps();
-	void showFps();
-	
 	/* Attributes */
 	// Screen
 	int m_width;
@@ -153,12 +158,10 @@ private:
 	GLuint m_transLoc, m_projLoc, m_viewLoc;
 	GLuint m_vertexLoc, m_normalLoc, m_UVLoc, m_colorLoc;
 
-	// FPS
-	bool m_showFps;
-	uint m_FPS;
-	uint m_frameCount;
-	QTime m_FPSTimer;
-	
+    // FPS
+    uint m_FPS;
+    uint m_frameCount;
+    QTime m_FPSTimer;
 };
 
 #endif

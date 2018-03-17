@@ -73,10 +73,9 @@ BasicGLWidget::BasicGLWidget(QWidget *parent) : QOpenGLWidget(parent)
 	// Shaders
 	m_program = nullptr;
 
-	// FPS
-	m_showFps = false;
-	m_frameCount = 0;
-	m_FPS = 0;
+    //FPS
+    m_frameCount = 0;
+    m_FPS = 0;
 }
 
 BasicGLWidget::~BasicGLWidget()
@@ -262,9 +261,6 @@ void BasicGLWidget::paintGL()
     }
 
 	m_program->release();
-
-	if (m_showFps)
-		showFps();
 }
 
 void BasicGLWidget::resizeGL(int w, int h)
@@ -285,53 +281,6 @@ void BasicGLWidget::resizeGL(int w, int h)
 
 	// After modifying the parameters, we update the camera projection
 	projectionTransform();
-}
-
-void BasicGLWidget::keyPressEvent(QKeyEvent *event)
-{
-	switch (event->key()) {
-		case Qt::Key_B:
-			// Change the background color
-			std::cout << "-- AGEn message --: Change background color" << std::endl;
-			changeBackgroundColor(QColor::fromRgb(rand() % 255, rand() % 255, rand() % 255));
-			break;
-		case Qt::Key_F:
-			// Enable/Disable frames per second
-			m_showFps = !m_showFps;
-			
-			// TO DO: Show or hide the FPS information
-
-			break;
-		case Qt::Key_H:
-			// Show the help message
-			std::cout << "-- AGEn message --: Help" << std::endl;
-			std::cout << std::endl;
-			std::cout << "Keys used in the application:" << std::endl;
-			std::cout << std::endl;
-			std::cout << "-B:  change background color" << std::endl;
-			std::cout << "-F:  show frames per second (fps)" << std::endl;
-			std::cout << "-H:  show this help" << std::endl;
-			std::cout << "-R:  reset the camera parameters" << std::endl;
-			std::cout << "-F5: reload shaders" << std::endl;
-			std::cout << std::endl;
-			std::cout << "IMPORTANT: the focus must be set to the glwidget to work" << std::endl;
-			std::cout << std::endl;
-			break;
-		case Qt::Key_R:
-			// Reset the camera and scene parameters
-			std::cout << "-- AGEn message --: Reset camera" << std::endl;
-			ResetCamera();
-            ResetScene();
-			break;
-		case Qt::Key_F5: 
-			// Reload shaders
-			std::cout << "-- AGEn message --: Reload shaders" << std::endl;
-			reloadShaders();
-			break;
-		default:
-			event->ignore();
-			break;
-	}
 }
 
 void BasicGLWidget::loadShaders()
@@ -398,6 +347,11 @@ void BasicGLWidget::reloadShaders()
 	update();
 }
 
+float BasicGLWidget::GetFPS()
+{
+    return m_FPS;
+}
+
 void BasicGLWidget::projectionTransform()
 {
     m_program->bind();
@@ -460,26 +414,18 @@ void BasicGLWidget::meshTransform(MeshPtr mesh)
 	m_program->setUniformValue(m_transLoc, mesh->GetTransform());
 }
 
-void BasicGLWidget::computeFps() 
+void BasicGLWidget::computeFps()
 {
-	if (m_frameCount == 0)
-	{
-		m_FPSTimer.start();
-	}
+    if (m_frameCount == 0)
+    {
+        m_FPSTimer.start();
+    }
 
-	if (m_FPSTimer.elapsed()/1000.f >= 1.f)
-	{
-		m_FPS = m_frameCount;
-		m_frameCount = 0;
-		m_FPSTimer.restart();
-	}
-
-	m_frameCount++;
-}
-
-void BasicGLWidget::showFps()
-{
-	
-	// TO DO: Show the FPS
-
+    if (m_FPSTimer.elapsed() / 1000.f >= 1.f)
+    {
+        m_FPS = m_frameCount;
+        m_frameCount = 0;
+        m_FPSTimer.restart();
+    }
+    m_frameCount++;
 }

@@ -24,9 +24,16 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
     void wheelEvent(QWheelEvent* event) override;
 
+    // FPS
+    void showFps();
+
 	Ui::BasicWindow m_ui;
 	BasicGLWidget* m_glWidget;
 
+    //Input
     QPoint m_mouseLastPos;
+
+    // FPS
+    bool m_showFps;
 };
 #endif
