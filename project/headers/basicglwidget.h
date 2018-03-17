@@ -80,8 +80,19 @@ public:
     void SetRotationAll(QVector3D rotationEuler);
     void TranslateAll(QVector3D translation);
     void SetTranslationAll(QVector3D position);
+    void ResetScene();
+
+    void ResetCamera();
 
     std::vector<MeshPtr> GetMeshes();
+
+    QVector3D GetCameraPosition();
+    void SetCameraPosition(QVector3D position);
+    void TranslateCamera(QVector3D translation);
+
+    QVector3D GetCameraRotation();
+    void SetCameraRotation(QVector3D rotation);
+    void RotateCamera(QVector3D rotation);
 
 public slots:
     void cleanup();
@@ -100,7 +111,6 @@ private:
 
 	// Camera
 	void projectionTransform(); // Type of camera
-	void resetCamera();
 	void viewTransform(); // Position of the camera
 
 	// Scene

@@ -144,9 +144,47 @@ void BasicGLWidget::SetTranslationAll(QVector3D position)
     update();
 }
 
+void BasicGLWidget::ResetScene()
+{
+    SetRotationAll(QVector3D(0.f, 0.f, 0.f));
+    SetTranslationAll(QVector3D(0.f, 0.f, -40.f));
+}
+
 std::vector<MeshPtr> BasicGLWidget::GetMeshes()
 {
     return m_meshes;
+}
+
+QVector3D BasicGLWidget::GetCameraPosition()
+{
+    return m_cameraPosition;
+}
+
+void BasicGLWidget::SetCameraPosition(QVector3D position)
+{
+    m_cameraPosition = position;
+    viewTransform();
+}
+
+void BasicGLWidget::TranslateCamera(QVector3D translation)
+{
+    SetCameraPosition(m_cameraPosition + translation);
+}
+
+QVector3D BasicGLWidget::GetCameraRotation()
+{
+    return m_cameraRotation;
+}
+
+void BasicGLWidget::SetCameraRotation(QVector3D rotation)
+{
+    m_cameraRotation = rotation;
+    viewTransform();
+}
+
+void BasicGLWidget::RotateCamera(QVector3D rotation)
+{
+    SetCameraRotation(m_cameraRotation + rotation);
 }
 
 void BasicGLWidget::cleanup()
@@ -282,7 +320,8 @@ void BasicGLWidget::keyPressEvent(QKeyEvent *event)
 		case Qt::Key_R:
 			// Reset the camera and scene parameters
 			std::cout << "-- AGEn message --: Reset camera" << std::endl;
-			resetCamera();
+			ResetCamera();
+            ResetScene();
 			break;
 		case Qt::Key_F5: 
 			// Reload shaders
@@ -379,11 +418,10 @@ void BasicGLWidget::projectionTransform()
     m_program->release();
 }
 
-void BasicGLWidget::resetCamera()
+void BasicGLWidget::ResetCamera()
 {
-
-	// TO DO: Reset the camera/view parameters
-
+    SetCameraRotation(QVector3D(0.f, 0.f, 0.f));
+    SetCameraPosition(QVector3D(0.f, 0.f, 0.f));
 }
 
 void BasicGLWidget::viewTransform()
@@ -394,6 +432,7 @@ void BasicGLWidget::viewTransform()
 	QMatrix4x4 view;
 	view.setToIdentity();
 	view.translate(m_cameraPosition);
+    view.translate(0.f,0.f,-2.f);
     view.rotate(QQuaternion::fromEulerAngles(m_cameraRotation));
 
 	// Send the matrix to the shader
