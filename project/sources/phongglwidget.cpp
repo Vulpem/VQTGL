@@ -299,8 +299,8 @@ void PhongGLWidget::loadShaders()
 	QOpenGLShader fs(QOpenGLShader::Fragment, this);
 
 	// Load and compile the shaders
-	vs.compileSourceFile("./shaders/phong.vert");
-	fs.compileSourceFile("./shaders/phong.frag");
+	vs.compileSourceFile("./project/shaders/phong.vert");
+	fs.compileSourceFile("./project/shaders/phong.frag");
 
 	// Create the program
 	m_program = new QOpenGLShaderProgram;

@@ -7,12 +7,12 @@
 #include <QMessageBox>
 
 
-PhongWindow::PhongWindow(MainWindow* mw) :m_mainWindow(mw)
+PhongWindow::PhongWindow(QString name)
 {
 	m_ui.setupUi(this);
 
 	// Insert the m_glWidget in the GUI
-	m_glWidget = new PhongGLWidget("./models/Patricio.obj", false);
+	m_glWidget = new PhongGLWidget("./project/models/Patricio.obj", false);
 	layoutFrame = new QVBoxLayout(m_ui.qGLFrame);
 	layoutFrame->setMargin(0);
 	layoutFrame->addWidget(m_glWidget);
@@ -31,38 +31,10 @@ PhongWindow::~PhongWindow()
 		
 }
 
-void PhongWindow::dockUndock()
-{
-	if (parent()) {
-		setParent(0);
-		setAttribute(Qt::WA_DeleteOnClose);
-		move(QApplication::desktop()->width() / 2 - width() / 2,
-			QApplication::desktop()->height() / 2 - height() / 2);
-		m_ui.qUndockButton->setText(tr("Dock"));
-		show();
-	}
-	else {
-		if (!m_mainWindow->centralWidget()) {
-			if (m_mainWindow->isVisible()) {
-				setAttribute(Qt::WA_DeleteOnClose, false);
-				m_ui.qUndockButton->setText(tr("Undock"));
-				m_mainWindow->setCentralWidget(this);
-				show();
-			}
-			else {
-				QMessageBox::information(0, tr("Cannot dock"), tr("Main window already closed"));
-			}
-		}
-		else {
-			QMessageBox::information(0, tr("Cannot dock"), tr("Main window already occupied"));
-		}
-	}
-}
-
 void PhongWindow::loadModel() 
 {
-	QString filename = QFileDialog::getOpenFileName(this, tr("Load Model"),
-		"./models/", tr("3D Models (*.obj)"));
+	QString filename = QFileDialog::getOpenFileName((QWidget*)this, tr("Load Model"),
+		"./project/models/", tr("3D Models (*.obj)"));
 
 	bool showFps = false;
 

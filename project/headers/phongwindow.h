@@ -1,19 +1,19 @@
 #include <QWidget>
 #include "ui_phongwindow.h"
+#include "basicwindow.h"
 
 class MainWindow;
 class PhongGLWidget;
 
-class PhongWindow : public QWidget
+class PhongWindow : public BasicWindow
 {
 	Q_OBJECT
 
 public:
-	PhongWindow(MainWindow* mw);
+	PhongWindow(QString name = "BasicGLWindow");
 	~PhongWindow();
 
 private slots:
-	void dockUndock();
 	void loadModel();
 
 private:

@@ -75,6 +75,11 @@ MainWindow::MainWindow()
 	addMenu->addAction(basicWindow);
 	connect(basicWindow, &QAction::triggered, this, &MainWindow::AddGLWindow);
 
+	QAction *patriWindow = new QAction(menuWindow);
+	patriWindow->setText(tr("Patricio Window"));
+	addMenu->addAction(patriWindow);
+	connect(patriWindow, &QAction::triggered, this, &MainWindow::AddPatriWindow);
+
 	setMenuBar(menuBar);
     manager = new WindowManager();
 	setCentralWidget(manager);
@@ -95,4 +100,9 @@ void MainWindow::closeEvent(QCloseEvent * event)
 void MainWindow::AddGLWindow()
 {
 	manager->AddWindow(WindowTypes::Basic_GL);
+}
+
+void MainWindow::AddPatriWindow()
+{
+	manager->AddWindow(WindowTypes::Patri_Window);
 }
