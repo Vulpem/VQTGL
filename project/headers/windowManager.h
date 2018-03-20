@@ -15,7 +15,8 @@ enum class WindowTypes
 {
     Hello_QT = 0,
     Basic_Window,
-    Basic_GL
+    Basic_GL,
+	Patri_Window,
 };
 
 class ListedWindow : public QWidget
