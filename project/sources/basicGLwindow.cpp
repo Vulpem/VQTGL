@@ -195,7 +195,7 @@ void BasicGLWindow::mouseMoveEvent(QMouseEvent * event)
     int dy = event->y() - m_mouseLastPos.y();
     if (event->buttons() & Qt::LeftButton) {
         if(m_movingCamera)
-            m_glWidget->RotateCamera(QVector3D(dy, dx, 0.f));
+            m_glWidget->RotateCamera(QVector3D(-dy, -dx, 0.f));
         else
             m_glWidget->RotateAll(QVector3D(dy, dx, 0.f));
     }
@@ -207,7 +207,7 @@ void BasicGLWindow::mouseMoveEvent(QMouseEvent * event)
     else if (event->buttons() & Qt::MiddleButton)
     {
         if (m_movingCamera)
-            m_glWidget->TranslateCamera(QVector3D(-dx, -dy, 0.f));
+            m_glWidget->TranslateCamera(QVector3D(dx, dy, 0.f));
         else
             m_glWidget->TranslateAll(QVector3D(dx / 4.f, -dy / 4.f, 0.f));
     }
@@ -223,6 +223,13 @@ void BasicGLWindow::wheelEvent(QWheelEvent * event)
     const int degrees = event->delta() / 8;
     if (degrees)
     {
-        m_glWidget->TranslateAll(QVector3D(0.f, 0.f, degrees / 10.f));
+		if (m_movingCamera)
+		{
+			m_glWidget->TranslateCamera(m_glWidget->GetCameraForward());
+		}
+		else
+		{
+			m_glWidget->TranslateAll(QVector3D(0.f, 0.f, degrees / 10.f));
+		}
     }
 }
