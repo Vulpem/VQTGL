@@ -191,21 +191,21 @@ void BasicGLWidget::RotateCamera(QVector3D rotation)
 QVector3D BasicGLWidget::GetCameraForward()
 {
     QMatrix4x4 view;
-    view.rotate(QQuaternion::fromEulerAngles(-m_cameraRotation));
+    view.rotate(QQuaternion::fromEulerAngles(m_cameraRotation));
     return QVector3D(0.f, 0.f, 1.f) * view;
 }
 
 QVector3D BasicGLWidget::GetCameraRight()
 {
     QMatrix4x4 view;
-    view.rotate(QQuaternion::fromEulerAngles(-m_cameraRotation));
+    view.rotate(QQuaternion::fromEulerAngles(m_cameraRotation));
     return QVector3D(-1.f, 0.f, 0.f) * view;
 }
 
 QVector3D BasicGLWidget::GetCameraUp()
 {
     QMatrix4x4 view;
-    view.rotate(QQuaternion::fromEulerAngles(-m_cameraRotation));
+    view.rotate(QQuaternion::fromEulerAngles(m_cameraRotation));
     return QVector3D(0.f, -1.f, 0.f) * view;
 }
 
@@ -415,8 +415,8 @@ QMatrix4x4 BasicGLWidget::GetViewMatrix()
 {
     QMatrix4x4 view;
     view.setToIdentity();
-    view.translate(m_cameraPosition);
     view.translate(0.f, 0.f, -2.f);
+	view.translate(m_cameraPosition);
     view.rotate(QQuaternion::fromEulerAngles(m_cameraRotation));
     return view;
 }
