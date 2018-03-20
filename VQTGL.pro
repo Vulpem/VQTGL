@@ -8,6 +8,10 @@ HEADERS       = project/headers/glwidget.h \
                 project/headers/basicwindow.h \
                 project/headers/windowManager.h \
                 project/headers/basicGLwindow.h \
+                project/headers/model.h \
+                project/headers/phongglwidget.h \
+                project/headers/phongwindow.h \
+                project/headers/definitions.h
 
 SOURCES       = project/main.cpp \
                 project/sources/glwidget.cpp \
@@ -18,8 +22,12 @@ SOURCES       = project/main.cpp \
                 project/sources/basicwindow.cpp \
                 project/sources/windowManager.cpp \
                 project/sources/basicGLwindow.cpp \
+                project/sources/model.cpp \
+                project/sources/phongglwidget.cpp \
+                project/sources/phongwindow.cpp
 
-FORMS         = project/forms/basicwindow.ui
+FORMS         = project/forms/basicwindow.ui \
+	        project/forms/phongwindow.ui
 
 QT           += widgets
 QT           += opengl
