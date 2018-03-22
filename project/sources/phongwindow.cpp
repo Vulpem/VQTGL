@@ -35,18 +35,17 @@ void PhongWindow::loadModel()
 {
 	QString filename = QFileDialog::getOpenFileName((QWidget*)this, tr("Load Model"),
 		"./project/models/", tr("3D Models (*.obj)"));
+	if (filename.size() != 0)
+	{
+		// We delete the glWidget and create another one to restart the GLContext
+		// Otherwise, the painter does not work and the fps are not shown
+		if (m_glWidget != nullptr) {
+			delete m_glWidget;
+			m_glWidget = nullptr;
+		}
 
-	bool showFps = false;
-
-	// We delete the glWidget and create another one to restart the GLContext
-	// Otherwise, the painter does not work and the fps are not shown
-	if (m_glWidget != nullptr) {
-		delete m_glWidget;
-		m_glWidget = nullptr;
+		m_glWidget = new PhongGLWidget(filename, true);
+		layoutFrame->addWidget(m_glWidget);
+		m_glWidget->show();
 	}
-
-	m_glWidget = new PhongGLWidget(filename, showFps);
-	layoutFrame->addWidget(m_glWidget);
-	m_glWidget->show();
-
 }
