@@ -69,6 +69,27 @@
         </widget>
        </item>
        <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Move controls affect:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="MoveControlsComboBox">
+         <item>
+          <property name="text">
+           <string>Scene</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Camera</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -84,13 +105,6 @@
       </layout>
      </item>
     </layout>
-   </item>
-   <item row="1" column="0">
-    <widget class="QPushButton" name="qUndockButton">
-     <property name="text">
-      <string>Undock</string>
-     </property>
-    </widget>
    </item>
   </layout>
  </widget>

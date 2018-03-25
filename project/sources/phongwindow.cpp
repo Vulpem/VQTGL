@@ -18,7 +18,7 @@ PhongWindow::PhongWindow(QString name)
 	layoutFrame->addWidget(m_glWidget);
 	m_glWidget->show();
 	
-	connect(m_ui.qUndockButton, SIGNAL(clicked()), this, SLOT(dockUndock()));
+	//connect(m_ui.qUndockButton, SIGNAL(clicked()), this, SLOT(dockUndock()));
 	connect(m_ui.qLoadModelButton, SIGNAL(clicked()), this, SLOT(loadModel()));
 }
 
