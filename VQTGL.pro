@@ -11,7 +11,9 @@ HEADERS       = project/headers/glwidget.h \
                 project/headers/model.h \
                 project/headers/phongglwidget.h \
                 project/headers/phongwindow.h \
-                project/headers/definitions.h
+                project/headers/definitions.h \
+		project/headers/texturingglwidget.h \
+		project/headers/texturingwindow.h
 
 SOURCES       = project/main.cpp \
                 project/sources/glwidget.cpp \
@@ -24,10 +26,13 @@ SOURCES       = project/main.cpp \
                 project/sources/basicGLwindow.cpp \
                 project/sources/model.cpp \
                 project/sources/phongglwidget.cpp \
-                project/sources/phongwindow.cpp
+                project/sources/phongwindow.cpp \
+                project/sources/texturingglwidget.cpp \
+                project/sources/texturingwindow.cpp
 
 FORMS         = project/forms/basicwindow.ui \
-	        project/forms/phongwindow.ui
+	        project/forms/phongwindow.ui \
+		project/forms/texturingwindow.ui
 
 QT           += widgets
 QT           += opengl

@@ -3,6 +3,7 @@
 #include "helloQT.h"
 #include "basicGLwindow.h"
 #include "phongwindow.h"
+#include "texturingwindow.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -85,6 +86,8 @@ void WindowManager::AddWindow(WindowTypes win)
         window = new BasicGLWindow(); break;
 	case WindowTypes::Patri_Window:
 		window = new PhongWindow(); break;
+	case WindowTypes::Texturing_Window:
+		window = new TexturingWindow(); break;
     }
 
     if (window != nullptr)

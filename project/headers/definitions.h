@@ -5,7 +5,8 @@
 
 /* Definition of constants */
 #define PI 3.14159f
-
+//#define INFINITY 1e8
+#define MAX_RAY_DEPTH 5
 
 
 /* Definition of methods*/

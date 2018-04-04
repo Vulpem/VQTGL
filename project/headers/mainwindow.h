@@ -70,6 +70,7 @@ public:
 	void AddHelloQT();
 	void AddGLWindow();
 	void AddPatriWindow();
+	void AddTexturingWindow();
 
 private:
     WindowManager * manager;

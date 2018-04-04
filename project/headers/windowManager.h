@@ -17,6 +17,7 @@ enum class WindowTypes
     Basic_Window,
     Basic_GL,
 	Patri_Window,
+	Texturing_Window,
 };
 
 class ListedWindow : public QWidget

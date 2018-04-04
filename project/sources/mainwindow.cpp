@@ -80,6 +80,11 @@ MainWindow::MainWindow()
 	addMenu->addAction(patriWindow);
 	connect(patriWindow, &QAction::triggered, this, &MainWindow::AddPatriWindow);
 
+	QAction *texturingWindow = new QAction(menuWindow);
+	texturingWindow->setText(tr("Texturing Window"));
+	addMenu->addAction(texturingWindow);
+	connect(texturingWindow, &QAction::triggered, this, &MainWindow::AddTexturingWindow);
+
 	setMenuBar(menuBar);
     manager = new WindowManager();
 	setCentralWidget(manager);
@@ -105,4 +110,9 @@ void MainWindow::AddGLWindow()
 void MainWindow::AddPatriWindow()
 {
 	manager->AddWindow(WindowTypes::Patri_Window);
+}
+
+void MainWindow::AddTexturingWindow()
+{
+	manager->AddWindow(WindowTypes::Texturing_Window);
 }
