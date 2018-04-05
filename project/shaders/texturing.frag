@@ -22,7 +22,7 @@ void main()
 	vec4 texColor2 = texture2D(tex2Texture, vertexTexCoords);
 	FragColor = texColor1 + texColor2 * 0.5f;
     }
-    if (tex1Loaded == 1)
+    else if (tex1Loaded == 1)
       FragColor = texture2D(tex1Texture, vertexTexCoords);
     else if (tex2Loaded == 1)
       FragColor = texture2D(tex2Texture, vertexTexCoords);
