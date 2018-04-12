@@ -54,7 +54,7 @@ QMatrix4x4 Mesh::GetTransform()
 }
 
 
-BasicGLWidget::BasicGLWidget(QWidget *parent) : QOpenGLWidget(parent)
+BasicGLWidget::BasicGLWidget(QString modelFilename, QWidget *parent) : QOpenGLWidget(parent)
 {
 	// To receive key events
 	setFocusPolicy(Qt::StrongFocus);
@@ -76,6 +76,11 @@ BasicGLWidget::BasicGLWidget(QWidget *parent) : QOpenGLWidget(parent)
     //FPS
     m_frameCount = 0;
     m_FPS = 0;
+
+	if (modelFilename != "")
+	{
+		LoadModel(modelFilename);
+	}
 }
 
 BasicGLWidget::~BasicGLWidget()
@@ -91,6 +96,16 @@ QSize BasicGLWidget::minimumSizeHint() const
 QSize BasicGLWidget::sizeHint() const
 {
     return QSize(m_width, m_height);
+}
+
+MeshPtr BasicGLWidget::LoadModel(QString modelFilename)
+{
+	std::vector<Vertex> vertices;
+	std::vector<uint> indices;
+
+	//TODO transform filename to vertices
+
+	return AddMesh(vertices, indices);
 }
 
 MeshPtr BasicGLWidget::AddMesh(const std::vector<Vertex>& vertices, const std::vector<uint>& indices)

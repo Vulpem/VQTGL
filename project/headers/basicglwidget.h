@@ -68,13 +68,14 @@ class BasicGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     Q_OBJECT
 
 public:
-    BasicGLWidget(QWidget *parent = 0);
+    BasicGLWidget(QString modelFilename = "", QWidget *parent = 0);
     ~BasicGLWidget();
 
     QSize minimumSizeHint() const override;
     QSize sizeHint() const override;
 
     //Meshes
+	MeshPtr LoadModel(QString modelFilename);
     MeshPtr AddMesh(const std::vector<Vertex>& vertices, const std::vector<uint>& indices);
     MeshPtr AddMesh(MeshPtr mesh);
     std::vector<MeshPtr> GetMeshes();

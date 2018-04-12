@@ -6,6 +6,7 @@
 #include <qinputdialog.h>
 #include <qspinbox.h>
 #include <qcheckbox.h>
+#include <qfiledialog.h>
 
 #include <iostream>
 
@@ -14,14 +15,16 @@ BasicGLWindow::BasicGLWindow(QString name)
 {
     m_ui.setupUi(this);
 
-    m_glWidget = new BasicGLWidget;
+    m_glWidget = new BasicGLWidget("./project/models/Patricio.obj");
 
-	QVBoxLayout* layoutFrame = new QVBoxLayout(m_ui.qGLFrame);
-	layoutFrame->setMargin(0);
-	layoutFrame->addWidget(m_glWidget);
+	m_glWidgetContainer = new QVBoxLayout(m_ui.qGLFrame);
+	m_glWidgetContainer->setMargin(0);
+	m_glWidgetContainer->addWidget(m_glWidget);
 	m_glWidget->show();
 
+	connect(m_ui.qLoadModelButton, &QPushButton::clicked, this, &BasicGLWindow::SLOT_LoadModel);
 	connect(m_ui.MoveControlsComboBox, &QComboBox::currentTextChanged, this, &BasicGLWindow::SLOT_ChangedInputMovement);
+
 	connect(m_glWidget, &BasicGLWidget::UpdatedFPS, this, &BasicGLWindow::SLOT_UpdateFPS);
 
     createBoxScene();
@@ -52,6 +55,25 @@ void BasicGLWindow::SLOT_ChangedInputMovement(QString val)
 void BasicGLWindow::SLOT_UpdateFPS(float FPS)
 {
     //m_fpsLabel->setText(QString::number(FPS));
+}
+
+void BasicGLWindow::SLOT_LoadModel()
+{
+	QString filename = QFileDialog::getOpenFileName((QWidget*)this, tr("Load Model"),
+		"./project/models/", tr("3D Models (*.obj)"));
+	if (filename.size() != 0)
+	{
+		// We delete the glWidget and create another one to restart the GLContext
+		// Otherwise, the painter does not work and the fps are not shown
+		if (m_glWidget != nullptr) {
+			delete m_glWidget;
+			m_glWidget = nullptr;
+		}
+
+		m_glWidget = new BasicGLWidget(filename);
+		m_glWidgetContainer->addWidget(m_glWidget);
+		m_glWidget->show();
+	}
 }
 
 void BasicGLWindow::createBoxScene()

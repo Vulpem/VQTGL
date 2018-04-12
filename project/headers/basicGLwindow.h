@@ -26,6 +26,7 @@ public:
 public slots:
 void SLOT_ChangedInputMovement(QString val);
 void SLOT_UpdateFPS(float FPS);
+void SLOT_LoadModel();
 
 signals:
 
@@ -41,6 +42,7 @@ protected:
 
 	Ui::BasicGLWindow m_ui;
 	BasicGLWidget* m_glWidget;
+	QVBoxLayout* m_glWidgetContainer;
 
     //Input
     QPoint m_mouseLastPos;
