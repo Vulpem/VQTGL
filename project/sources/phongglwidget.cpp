@@ -5,6 +5,8 @@
 #include <QMessageBox>
 #include <QPainter>
 #include <math.h>
+#include <qopenglframebufferobject.h>
+#include <QOpenGLFramebufferObjectFormat>
 
 #include <iostream>
 
@@ -112,6 +114,7 @@ void PhongGLWidget::initializeGL()
 	projectionTransform();
 	viewTransform();
 	setLighting();
+	initFrameBufferObject();
 }
 
 void PhongGLWidget::paintGL()
@@ -133,11 +136,23 @@ void PhongGLWidget::paintGL()
 	// Apply the geometric transforms to the model (position/orientation)
 	modelTransform();
 
+	m_fbo->bind();
+	GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT3 };
+	glDrawBuffers(3, bufs);
+
+	m_fbo->bindDefault();
+
 	// Draw the model
 	glDrawArrays(GL_TRIANGLES, 0, m_model.faces().size() * 3);
 
+	//This is the one that should be active. However, until we don't have
+	//the second shader program and second draw call, we won't use it.
+	//Otherwise, nothing is displayed
+	//m_fbo->bindDefault();
+
 	// Unbind the vertex array
 	glBindVertexArray(0);
+
 
 	// Show FPS if they are enabled 
 	if (m_showFps)
@@ -336,7 +351,15 @@ void PhongGLWidget::reloadShaders()
 {
 	
 	// TO DO: Insert your code here to reload the shaders and update the view
+}
 
+void PhongGLWidget::initFrameBufferObject()
+{
+	QOpenGLFramebufferObjectFormat format;
+	format.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
+
+	m_fbo = new QOpenGLFramebufferObject(m_width, m_height, format);
+	m_fbo->addColorAttachment(m_width, m_height);
 }
 
 void PhongGLWidget::initCameraParams() 

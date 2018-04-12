@@ -10,7 +10,7 @@ class PhongWindow : public BasicWindow
 	Q_OBJECT
 
 public:
-	PhongWindow(QString name = "BasicGLWindow");
+	PhongWindow(QString name = "Patricio Window");
 	~PhongWindow();
 
 private slots:

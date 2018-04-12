@@ -12,6 +12,11 @@ uniform vec3 lightCol;
 
 out vec4 FragColor;
 
+layout (location = 0) out vec4 FragColorRT0;
+layout (location = 1) out vec4 FragColorDepth;
+layout (location = 2) out vec4 FragColorNormals;
+
+
 vec3 ambientLight = vec3(0.2, 0.2, 0.2);
 
 vec3 Lambert (vec3 NormOCS, vec3 L)
@@ -54,6 +59,9 @@ vec3 Phong (vec3 NormOCS, vec3 L, vec4 vertOCS)
 
 void main()
 {
+  vec3 n = normalize(normalOCS);
   vec3 L = normalize(lightPos.xyz - vec3(vertexOCS).xyz);
-  FragColor = vec4(Phong(normalize(normalOCS), L, vertexOCS), 1);
+  FragColorRT0 = vec4(Phong(n, L, vertexOCS), 1);
+  FragColorDepth = vec4(gl_FragCoord.z,gl_FragCoord.z,gl_FragCoord.z,1);
+  FragColorNormals = vec4(n, 1);
 }

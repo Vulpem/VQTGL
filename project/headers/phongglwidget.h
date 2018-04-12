@@ -56,6 +56,7 @@ private:
     // Shaders
 	void loadShaders();
 	void reloadShaders();
+	void initFrameBufferObject();
 
 	// Camera
 	void initCameraParams();
@@ -125,6 +126,7 @@ private:
 	int m_doingInteractive;
 
 	// Shaders
+	QOpenGLFramebufferObject* m_fbo;
     QOpenGLShaderProgram *m_program;
 	GLuint m_transLoc, m_projLoc, m_viewLoc;
 	GLuint m_vertexLoc, m_normalLoc;
