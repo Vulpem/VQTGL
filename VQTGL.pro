@@ -32,7 +32,8 @@ SOURCES       = project/main.cpp \
 
 FORMS         = project/forms/basicwindow.ui \
 	        project/forms/phongwindow.ui \
-		project/forms/texturingwindow.ui
+		project/forms/texturingwindow.ui \
+		project/forms/BasicGLWindow.ui
 
 QT           += widgets
 QT           += opengl

@@ -2,7 +2,7 @@
 #define __BASIC__GL__WINDOW__
 
 #include "basicwindow.h"
-
+#include "ui_BasicGLWindow.h"
 
 class MainWindow;
 class BasicGLWidget;
@@ -13,13 +13,18 @@ class BasicGLWindow : public BasicWindow
 {
 	Q_OBJECT
 
+	enum class InputMovement
+	{
+		FPScamera,
+		scene
+	};
+
 public:
     BasicGLWindow(QString name = "BasicGLWindow");
     ~BasicGLWindow();
 
 public slots:
-void SLOT_MoveSceneCheckbox(int val);
-void SLOT_MoveCameraCheckbox(int val);
+void SLOT_ChangedInputMovement(QString val);
 void SLOT_UpdateFPS(float FPS);
 
 signals:
@@ -34,14 +39,11 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
     void wheelEvent(QWheelEvent* event) override;
 
-	Ui::BasicWindow m_ui;
+	Ui::BasicGLWindow m_ui;
 	BasicGLWidget* m_glWidget;
-    QLabel* m_fpsLabel;
-    QCheckBox* m_moveSceneCheckbox;
-    QCheckBox* m_moveCameraCheckbox;
 
     //Input
     QPoint m_mouseLastPos;
-    bool m_movingCamera;
+	InputMovement m_inputMovement;
 };
 #endif

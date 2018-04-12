@@ -16,34 +16,13 @@ BasicGLWindow::BasicGLWindow(QString name)
 
     m_glWidget = new BasicGLWidget;
 
-    QVBoxLayout* layoutInputs = new QVBoxLayout();
-	// Insert the m_glWidget in the GUI
-	QHBoxLayout* layoutFrame = new QHBoxLayout(m_ui.qGLFrame);
+	QVBoxLayout* layoutFrame = new QVBoxLayout(m_ui.qGLFrame);
 	layoutFrame->setMargin(0);
 	layoutFrame->addWidget(m_glWidget);
-    layoutFrame->addLayout(layoutInputs);
+	m_glWidget->show();
 
-    QLabel* fps = new QLabel("Fps:");
-    layoutInputs->addWidget(fps);
-    m_fpsLabel = new QLabel("00");
-    layoutInputs->addWidget(m_fpsLabel);
-
-    QLabel* title = new QLabel("Controls:");
-    layoutInputs->addWidget(title);
-
-    m_moveSceneCheckbox = new QCheckBox("Move Scene");
-    layoutInputs->addWidget(m_moveSceneCheckbox);
-
-    m_moveCameraCheckbox = new QCheckBox("Move Camera");
-    layoutInputs->addWidget(m_moveCameraCheckbox);
-
-    layoutInputs->addStretch(1);
-
-
-    connect(m_moveCameraCheckbox, &QCheckBox::stateChanged, this, &BasicGLWindow::SLOT_MoveCameraCheckbox);
-    connect(m_moveSceneCheckbox, &QCheckBox::stateChanged, this, &BasicGLWindow::SLOT_MoveSceneCheckbox);
-    connect(m_glWidget, &BasicGLWidget::UpdatedFPS, this, &BasicGLWindow::SLOT_UpdateFPS);
-    m_moveSceneCheckbox->setCheckState(Qt::CheckState::Checked);
+	connect(m_ui.MoveControlsComboBox, &QComboBox::currentTextChanged, this, &BasicGLWindow::SLOT_ChangedInputMovement);
+	connect(m_glWidget, &BasicGLWidget::UpdatedFPS, this, &BasicGLWindow::SLOT_UpdateFPS);
 
     createBoxScene();
 
@@ -58,35 +37,21 @@ BasicGLWindow::~BasicGLWindow()
 	}
 }
 
-void BasicGLWindow::SLOT_MoveSceneCheckbox(int val)
+void BasicGLWindow::SLOT_ChangedInputMovement(QString val)
 {
-    m_movingCamera = !val;
-    if (m_movingCamera)
-    {
-        m_moveCameraCheckbox->setCheckState(Qt::CheckState::Checked);
-    }
-    else
-    {
-        m_moveCameraCheckbox->setCheckState(Qt::CheckState::Unchecked);
-    }
-}
-
-void BasicGLWindow::SLOT_MoveCameraCheckbox(int val)
-{
-    m_movingCamera = val;
-    if (m_movingCamera)
-    {
-        m_moveSceneCheckbox->setCheckState(Qt::CheckState::Unchecked);
-    }
-    else
-    {
-        m_moveSceneCheckbox->setCheckState(Qt::CheckState::Checked);
-    }
+	if (val == "Camera")
+	{
+		m_inputMovement = InputMovement::FPScamera;
+	}
+	else if (val == "Scene")
+	{
+		m_inputMovement = InputMovement::scene;
+	}
 }
 
 void BasicGLWindow::SLOT_UpdateFPS(float FPS)
 {
-    m_fpsLabel->setText(QString::number(FPS));
+    //m_fpsLabel->setText(QString::number(FPS));
 }
 
 void BasicGLWindow::createBoxScene()
@@ -194,19 +159,19 @@ void BasicGLWindow::mouseMoveEvent(QMouseEvent * event)
     int dx = event->x() - m_mouseLastPos.x();
     int dy = event->y() - m_mouseLastPos.y();
     if (event->buttons() & Qt::LeftButton) {
-        if(m_movingCamera)
+        if(m_inputMovement == InputMovement::FPScamera)
             m_glWidget->RotateCamera(QVector3D(-dy, -dx, 0.f));
         else
             m_glWidget->RotateAll(QVector3D(dy, dx, 0.f));
     }
 
     else if (event->buttons() & Qt::RightButton) {
-        if(!m_movingCamera)
+        if(m_inputMovement != InputMovement::FPScamera)
             m_glWidget->RotateAll(QVector3D(dy, 0.f, dx));
     }
     else if (event->buttons() & Qt::MiddleButton)
     {
-        if (m_movingCamera)
+        if (m_inputMovement == InputMovement::FPScamera)
             m_glWidget->TranslateCamera(QVector3D(dx, dy, 0.f));
         else
             m_glWidget->TranslateAll(QVector3D(dx / 4.f, -dy / 4.f, 0.f));
@@ -223,7 +188,7 @@ void BasicGLWindow::wheelEvent(QWheelEvent * event)
     const int degrees = event->delta() / 8;
     if (degrees)
     {
-		if (m_movingCamera)
+		if (m_inputMovement == InputMovement::FPScamera)
 		{
 			m_glWidget->TranslateCamera(m_glWidget->GetCameraForward());
 		}
