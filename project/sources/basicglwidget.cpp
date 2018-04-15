@@ -190,11 +190,13 @@ std::vector<MeshPtr> BasicGLWidget::GetMeshes()
 void BasicGLWidget::LoadTexture(QString filename, int n)
 {
     m_meshes.front()->LoadTexture(filename, n);
+    update();
 }
 
 void BasicGLWidget::UnloadTexture(int n)
 {
     m_meshes.front()->UnloadTexture(n);
+    update();
 }
 
 QVector3D BasicGLWidget::GetCameraPosition()
@@ -285,21 +287,47 @@ void BasicGLWidget::initializeGL()
 
 void BasicGLWidget::paintGL()
 {
-	// FPS computation
-	computeFps();
-	
-	// Paint the scene
-	glClearColor(m_bgColor.red() / 255.0f, m_bgColor.green() / 255.0f, m_bgColor.blue() / 255.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_DEPTH_TEST);
-	if (m_backFaceCulling)
-		glEnable(GL_CULL_FACE);
-	else
-		glDisable(GL_CULL_FACE);
-	
+    // FPS computation
+    computeFps();
 
-	//Quad drawing
-	m_program->bind();
+    // Paint the scene
+    glClearColor(m_bgColor.red() / 255.0f, m_bgColor.green() / 255.0f, m_bgColor.blue() / 255.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    if (m_backFaceCulling)
+        glEnable(GL_CULL_FACE);
+    else
+        glDisable(GL_CULL_FACE);
+
+    //Quad drawing
+    m_program->bind();
+
+    const Mesh& mesh = *m_meshes.front();
+    auto tex1 = mesh.m_textures.find(0);
+    if (tex1 != mesh.m_textures.end())
+    {
+        tex1->second->bind(10);
+        glUniform1i(m_tex1Loc, 10);
+
+        glUniform1i(m_tex1Loaded, 1);
+    }
+    else
+    {
+        glUniform1i(m_tex1Loaded, 0);
+    }
+
+    auto tex2 = mesh.m_textures.find(1);
+    if (tex2 != mesh.m_textures.end())
+    {
+        tex2->second->bind(11);
+        glUniform1i(m_tex2Loc, 11);
+
+        glUniform1i(m_tex2Loaded, 1);
+    }
+    else
+    {
+        glUniform1i(m_tex2Loaded, 0);
+    }
 
     for (auto mesh : m_meshes)
     {
@@ -326,7 +354,7 @@ void BasicGLWidget::paintGL()
         glDrawElements(GL_TRIANGLES, (GLint)mesh->GetNIndices(), GL_UNSIGNED_INT, (void*)0);
     }
 
-	m_program->release();
+    m_program->release();
 }
 
 void BasicGLWidget::resizeGL(int w, int h)
@@ -393,6 +421,11 @@ void BasicGLWidget::loadShaders()
 	m_projLoc = m_program->uniformLocation("projTransform");
 	m_viewLoc = m_program->uniformLocation("viewTransform");
 	m_transLoc = m_program->uniformLocation("sceneTransform");
+
+    m_tex1Loc = m_program->uniformLocation("tex1Texture");
+    m_tex2Loc = m_program->uniformLocation("tex2Texture");
+    m_tex1Loaded = m_program->uniformLocation("tex1Loaded");
+    m_tex2Loaded = m_program->uniformLocation("tex2Loaded");
 
 	std::cout << "	Uniform locations \n";
 	std::cout << "		projection transform:		" << m_projLoc << "\n";

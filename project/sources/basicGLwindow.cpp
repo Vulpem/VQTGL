@@ -170,25 +170,25 @@ void BasicGLWindow::createBoxScene()
     vertices.push_back({
         { -10.f, +10.f, 0.f },
         { 0.f,0.f,-1.f },
-        { 0.f,0.f },
+        { 0.f,1.f },
         { 0.f, 1.f, 0.f }
         });
     vertices.push_back({
         { +10.f, +10.f, 0.f },
         { 0.f,0.f,-1.f },
-        { 1.f,0.f },
+        { 1.f,1.f },
         { 0.f, 1.f, 1.f }
         });
     vertices.push_back({
         { -10.f, -10.f, -0.f },
         { 0.f,0.f,-1.f },
-        { 0.f,1.f },
+        { 0.f,0.f },
         { 0.f, 0.f, 1.f }
         });
     vertices.push_back({
         { +10.f, -10.f, -0.f },
         { 0.f,0.f,-1.f },
-        { 1.f,1.f },
+        { 1.f,0.f },
         { 1.f, 0.f, 0.f }
         });
 

@@ -175,6 +175,8 @@ private:
     QOpenGLShaderProgram *m_program;
 	GLuint m_transLoc, m_projLoc, m_viewLoc;
 	GLuint m_vertexLoc, m_normalLoc, m_UVLoc, m_colorLoc;
+    GLuint m_tex1Loc, m_tex2Loc;
+    GLuint m_tex1Loaded, m_tex2Loaded;
 
     // FPS
     uint m_FPS;
