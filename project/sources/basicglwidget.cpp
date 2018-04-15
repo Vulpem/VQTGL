@@ -53,6 +53,24 @@ QMatrix4x4 Mesh::GetTransform()
     return ret;
 }
 
+void Mesh::LoadTexture(QString filename, int n)
+{
+    m_textures[n] = TexturePtr(new QOpenGLTexture(QImage(filename).mirrored()));
+    m_textures[n]->setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
+    m_textures[n]->setMagnificationFilter(QOpenGLTexture::Linear);
+}
+
+void Mesh::UnloadTexture(int n)
+{
+    auto tex = m_textures.find(n);
+    if (tex != m_textures.end())
+    {
+        m_textures.erase(tex);
+    }
+}
+
+
+
 
 BasicGLWidget::BasicGLWidget(QString modelFilename, QWidget *parent) : QOpenGLWidget(parent)
 {
@@ -167,6 +185,16 @@ void BasicGLWidget::ResetScene()
 std::vector<MeshPtr> BasicGLWidget::GetMeshes()
 {
     return m_meshes;
+}
+
+void BasicGLWidget::LoadTexture(QString filename, int n)
+{
+    m_meshes.front()->LoadTexture(filename, n);
+}
+
+void BasicGLWidget::UnloadTexture(int n)
+{
+    m_meshes.front()->UnloadTexture(n);
 }
 
 QVector3D BasicGLWidget::GetCameraPosition()

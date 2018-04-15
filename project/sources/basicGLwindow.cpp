@@ -22,10 +22,29 @@ BasicGLWindow::BasicGLWindow(QString name)
 	m_glWidgetContainer->addWidget(m_glWidget);
 	m_glWidget->show();
 
+
+    QGraphicsScene *scene = new QGraphicsScene();
+    scene->clear();
+    scene->addText("(Empty)");
+
+    m_ui.qTex1View->resetMatrix();
+    m_ui.qTex1View->setScene(scene);
+    m_ui.qTex1View->show();
+
+    m_ui.qTex2View->resetMatrix();
+    m_ui.qTex2View->setScene(scene);
+    m_ui.qTex2View->show();
+
+
 	connect(m_ui.qLoadModelButton, &QPushButton::clicked, this, &BasicGLWindow::SLOT_LoadModel);
 	connect(m_ui.MoveControlsComboBox, &QComboBox::currentTextChanged, this, &BasicGLWindow::SLOT_ChangedInputMovement);
 
 	connect(m_glWidget, &BasicGLWidget::UpdatedFPS, this, &BasicGLWindow::SLOT_UpdateFPS);
+
+    connect(m_ui.qLoadTex1Button, &QPushButton::clicked, this, &BasicGLWindow::SLOT_LoadTexture);
+    connect(m_ui.qDeleteTex1Button, &QPushButton::clicked, this, &BasicGLWindow::SLOT_UnloadTexture);
+    connect(m_ui.qLoadTex2Button, &QPushButton::clicked, this, &BasicGLWindow::SLOT_LoadTexture2);
+    connect(m_ui.qDeleteTex2Button, &QPushButton::clicked, this, &BasicGLWindow::SLOT_UnloadTexture2);
 
     createBoxScene();
 
@@ -74,6 +93,70 @@ void BasicGLWindow::SLOT_LoadModel()
 		m_glWidgetContainer->addWidget(m_glWidget);
 		m_glWidget->show();
 	}
+}
+
+void BasicGLWindow::SLOT_LoadTexture()
+{
+    m_filenameTex1 = QFileDialog::getOpenFileName(this, tr("Load Texture"),
+        "./textures/", tr("*.png;;*.jpg *.jpeg;;*.bmp;;*.gif;;*.pbm *.pgm *.ppm;;*.xbm *.xpm;;All files (*.*)"));
+
+    if (m_filenameTex1.size() != 0) {
+        m_glWidget->LoadTexture(m_filenameTex1, 0);
+
+        QGraphicsScene* texture = new QGraphicsScene();
+        texture->addPixmap(m_filenameTex1);
+        m_ui.qTex1View->setScene(texture);
+        m_ui.qTex1View->fitInView(texture->itemsBoundingRect());
+        m_ui.qTex1View->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+        m_ui.qTex1View->show();
+    }
+}
+
+void BasicGLWindow::SLOT_UnloadTexture()
+{
+    m_glWidget->UnloadTexture(0);
+
+    QGraphicsScene *scene = new QGraphicsScene();
+    scene->clear();
+    scene->addText("(Empty)");
+
+    m_ui.qTex1View->resetMatrix();
+    m_ui.qTex1View->setScene(scene);
+    m_ui.qTex1View->show();
+
+    m_filenameTex1.clear();
+}
+
+void BasicGLWindow::SLOT_LoadTexture2()
+{
+    m_filenameTex2 = QFileDialog::getOpenFileName(this, tr("Load Texture"),
+        "./textures/", tr("*.png;;*.jpg *.jpeg;;*.bmp;;*.gif;;*.pbm *.pgm *.ppm;;*.xbm *.xpm;;All files (*.*)"));
+
+    if (m_filenameTex2.size() != 0) {
+        m_glWidget->LoadTexture(m_filenameTex2, 1);
+
+        QGraphicsScene* texture = new QGraphicsScene();
+        texture->addPixmap(m_filenameTex2);
+        m_ui.qTex2View->setScene(texture);
+        m_ui.qTex2View->fitInView(texture->itemsBoundingRect());
+        m_ui.qTex2View->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+        m_ui.qTex2View->show();
+    }
+}
+
+void BasicGLWindow::SLOT_UnloadTexture2()
+{
+    m_glWidget->UnloadTexture(1);
+
+    QGraphicsScene *scene = new QGraphicsScene();
+    scene->clear();
+    scene->addText("(Empty)");
+
+    m_ui.qTex2View->resetMatrix();
+    m_ui.qTex2View->setScene(scene);
+    m_ui.qTex2View->show();
+
+    m_filenameTex2.clear();
 }
 
 void BasicGLWindow::createBoxScene()

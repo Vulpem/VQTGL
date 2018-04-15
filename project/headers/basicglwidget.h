@@ -6,6 +6,8 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
+#include <qimage.h>
+#include <qopengltexture.h>
 #include <QOpenGLShader>
 #include <QOpenGLShaderProgram>
 #include <QColor>
@@ -20,6 +22,9 @@
 
 #include "glm\glm.hpp"
 #include "glm\gtc\matrix_transform.hpp"
+
+
+typedef std::unique_ptr<QOpenGLTexture> TexturePtr;
 
 struct float3
 {
@@ -50,6 +55,8 @@ public:
 
     QMatrix4x4 GetTransform();
 	uint GetNIndices() { return m_numIndices; }
+    void LoadTexture(QString filename, int n = -1);
+    void UnloadTexture(int n);
 
     QVector3D m_position;
     QVector3D m_scale;
@@ -57,6 +64,7 @@ public:
 
     QOpenGLBuffer m_dataBuf;
     QOpenGLBuffer m_indicesBuf;
+    std::map<int, TexturePtr> m_textures;
 private:
     uint m_numIndices;
 };
@@ -79,6 +87,9 @@ public:
     MeshPtr AddMesh(const std::vector<Vertex>& vertices, const std::vector<uint>& indices);
     MeshPtr AddMesh(MeshPtr mesh);
     std::vector<MeshPtr> GetMeshes();
+
+    void LoadTexture(QString filename, int n = -1);
+    void UnloadTexture(int n);
 
     //Scene
     void RotateAll(QVector3D rotationEuler);

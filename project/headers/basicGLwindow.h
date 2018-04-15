@@ -27,6 +27,10 @@ public slots:
 void SLOT_ChangedInputMovement(QString val);
 void SLOT_UpdateFPS(float FPS);
 void SLOT_LoadModel();
+void SLOT_LoadTexture();
+void SLOT_UnloadTexture();
+void SLOT_LoadTexture2();
+void SLOT_UnloadTexture2();
 
 signals:
 
@@ -43,6 +47,9 @@ protected:
 	Ui::BasicGLWindow m_ui;
 	BasicGLWidget* m_glWidget;
 	QVBoxLayout* m_glWidgetContainer;
+
+    QString m_filenameTex1;
+    QString m_filenameTex2;
 
     //Input
     QPoint m_mouseLastPos;
