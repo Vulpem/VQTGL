@@ -35,8 +35,6 @@ void SLOT_UnloadTexture2();
 signals:
 
 protected:
-    void createBoxScene();
-
     // Keyboard and mouse interaction
     void keyPressEvent(QKeyEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;

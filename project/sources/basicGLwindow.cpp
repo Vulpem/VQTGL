@@ -46,8 +46,6 @@ BasicGLWindow::BasicGLWindow(QString name)
     connect(m_ui.qLoadTex2Button, &QPushButton::clicked, this, &BasicGLWindow::SLOT_LoadTexture2);
     connect(m_ui.qDeleteTex2Button, &QPushButton::clicked, this, &BasicGLWindow::SLOT_UnloadTexture2);
 
-    createBoxScene();
-
 	show();
 }
 
@@ -157,43 +155,6 @@ void BasicGLWindow::SLOT_UnloadTexture2()
     m_ui.qTex2View->show();
 
     m_filenameTex2.clear();
-}
-
-void BasicGLWindow::createBoxScene()
-{
-    std::vector<Vertex> vertices;
-    std::vector<uint> indices = {
-        0, 2, 1,
-        1, 2, 3
-    };
-
-    vertices.push_back({
-        { -10.f, +10.f, 0.f },
-        { 0.f,0.f,-1.f },
-        { 0.f,1.f },
-        { 0.f, 1.f, 0.f }
-        });
-    vertices.push_back({
-        { +10.f, +10.f, 0.f },
-        { 0.f,0.f,-1.f },
-        { 1.f,1.f },
-        { 0.f, 1.f, 1.f }
-        });
-    vertices.push_back({
-        { -10.f, -10.f, -0.f },
-        { 0.f,0.f,-1.f },
-        { 0.f,0.f },
-        { 0.f, 0.f, 1.f }
-        });
-    vertices.push_back({
-        { +10.f, -10.f, -0.f },
-        { 0.f,0.f,-1.f },
-        { 1.f,0.f },
-        { 1.f, 0.f, 0.f }
-        });
-
-    MeshPtr p = m_glWidget->AddMesh(vertices, indices);
-    p->m_position.setZ(-40);
 }
 
 void BasicGLWindow::keyPressEvent(QKeyEvent * event)

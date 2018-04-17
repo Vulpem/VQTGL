@@ -4,6 +4,7 @@
 #include <QColorDialog>
 #include <QPainter>
 #include <math.h>
+#include <qopenglcontext.h>
 
 #include <gl\GL.h>
 
@@ -11,36 +12,29 @@
 #include <gl\GLU.h>
 
 
-
-Vertex::Vertex(float3 position, float3 normal, float2 UVs, float3 col)
-    : pos(position)
-    , norm(normal)
-    , UV(UVs)
-    , color(col)
-{}
-
-Mesh::Mesh(std::vector<Vertex> vertices, std::vector<uint> indices)
+Mesh::Mesh()
     : m_position(0.f, 0.f, 0.f)
     , m_scale(1.f, 1.f, 1.f)
     , m_rotation(0.f, 0.f, 0.f)
-    , m_dataBuf(QOpenGLBuffer::Type::VertexBuffer)
-    , m_indicesBuf(QOpenGLBuffer::Type::IndexBuffer)
+	, m_modelFilename("")
+    , m_VBOModelVerts(QOpenGLBuffer::Type::VertexBuffer)
+    , m_VBOModelNorms(QOpenGLBuffer::Type::VertexBuffer)
+	, m_VBOModelMatAmb(QOpenGLBuffer::Type::VertexBuffer)
+	, m_VBOModelMatDiff(QOpenGLBuffer::Type::VertexBuffer)
+	, m_VBOModelMatSpec(QOpenGLBuffer::Type::VertexBuffer)
+	, m_VBOModelMatShin(QOpenGLBuffer::Type::VertexBuffer)
 {
-    m_numIndices = indices.size();
-
-    m_indicesBuf.create();
-    m_indicesBuf.bind();
-    m_indicesBuf.allocate(indices.data(), sizeof(uint) * m_numIndices);
-
-    m_dataBuf.create();
-    m_dataBuf.bind();
-    m_dataBuf.allocate(vertices.data(), sizeof(Vertex) * vertices.size());
 }
 
 Mesh::~Mesh()
 {
-    m_dataBuf.destroy();
-    m_dataBuf.destroy();
+	glDisableVertexAttribArray(0);
+	glDeleteBuffers(1, &m_VBOModelVerts);
+	glDeleteBuffers(1, &m_VBOModelNorms);
+	glDeleteBuffers(1, &m_VBOModelMatAmb);
+	glDeleteBuffers(1, &m_VBOModelMatDiff);
+	glDeleteBuffers(1, &m_VBOModelMatSpec);
+	glDeleteBuffers(1, &m_VBOModelMatShin);
 }
 
 QMatrix4x4 Mesh::GetTransform()
@@ -51,6 +45,45 @@ QMatrix4x4 Mesh::GetTransform()
 	ret.rotate(QQuaternion::fromEulerAngles(m_rotation));
     ret.scale(m_scale);
     return ret;
+}
+
+void Mesh::Load(QString filename)
+{
+	m_modelFilename = filename;
+	// Load the OBJ model - BEFORE creating the buffers!
+	m_model.load(filename.toStdString());
+
+	// VBO Vertices
+	glGenBuffers(1, &m_VBOModelVerts);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBOModelVerts);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*m_model.faces().size() * 3 * 3, m_model.VBO_vertices(), GL_STATIC_DRAW);
+
+	// VBO Normals
+	glGenBuffers(1, &m_VBOModelNorms);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBOModelNorms);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*m_model.faces().size() * 3 * 3, m_model.VBO_normals(), GL_STATIC_DRAW);
+
+	// Instead of colors, we pass the materials 
+	// VBO Ambient component
+	glGenBuffers(1, &m_VBOModelMatAmb);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBOModelMatAmb);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*m_model.faces().size() * 3 * 3, m_model.VBO_matamb(), GL_STATIC_DRAW);
+
+	// VBO Diffuse component
+	glGenBuffers(1, &m_VBOModelMatDiff);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBOModelMatDiff);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*m_model.faces().size() * 3 * 3, m_model.VBO_matdiff(), GL_STATIC_DRAW);
+
+	// VBO Specular component
+	glGenBuffers(1, &m_VBOModelMatSpec);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBOModelMatSpec);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*m_model.faces().size() * 3 * 3, m_model.VBO_matspec(), GL_STATIC_DRAW);
+
+	// VBO Shininess component
+	glGenBuffers(1, &m_VBOModelMatShin);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBOModelMatShin);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*m_model.faces().size() * 3, m_model.VBO_matshin(), GL_STATIC_DRAW);
+
 }
 
 void Mesh::LoadTexture(QString filename, int n)
@@ -95,10 +128,7 @@ BasicGLWidget::BasicGLWidget(QString modelFilename, QWidget *parent) : QOpenGLWi
     m_frameCount = 0;
     m_FPS = 0;
 
-	if (modelFilename != "")
-	{
-		LoadModel(modelFilename);
-	}
+	m_modelFilename = modelFilename;
 }
 
 BasicGLWidget::~BasicGLWidget()
@@ -118,26 +148,10 @@ QSize BasicGLWidget::sizeHint() const
 
 MeshPtr BasicGLWidget::LoadModel(QString modelFilename)
 {
-	std::vector<Vertex> vertices;
-	std::vector<uint> indices;
-
-	//TODO transform filename to vertices
-
-	return AddMesh(vertices, indices);
-}
-
-MeshPtr BasicGLWidget::AddMesh(const std::vector<Vertex>& vertices, const std::vector<uint>& indices)
-{
-    MeshPtr p = std::make_shared<Mesh>(vertices, indices);
-    m_meshes.push_back(p);
-    return AddMesh(p);
-}
-
-MeshPtr BasicGLWidget::AddMesh(MeshPtr mesh)
-{
-    m_meshes.push_back(mesh);
-    update();
-    return mesh;
+	MeshPtr p = std::make_shared<Mesh>();
+	p->Load(modelFilename);
+	m_meshes.push_back(p);
+	return p;
 }
 
 void BasicGLWidget::RotateAll(QVector3D rotationEuler)
@@ -277,12 +291,22 @@ void BasicGLWidget::initializeGL()
     // the signal will be followed by an invocation of initializeGL() where we
     // can recreate all resources.
     connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &BasicGLWidget::cleanup);
+
     initializeOpenGLFunctions();
  	loadShaders();
+	if (m_modelFilename != "")
+	{
+		LoadModel(m_modelFilename);
+	}
 	projectionTransform();
 	viewTransform();
-
     computeBBoxScene();
+
+	QOpenGLFramebufferObjectFormat format;
+	format.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
+
+	m_fbo = new QOpenGLFramebufferObject(m_width, m_height, format);
+	m_fbo->addColorAttachment(m_width, m_height);
 }
 
 void BasicGLWidget::paintGL()
@@ -302,57 +326,64 @@ void BasicGLWidget::paintGL()
     //Quad drawing
     m_program->bind();
 
+	m_fbo->bind();
+	GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT3 };
+	glDrawBuffers(3, bufs);
+
+	//TODO remove
+	m_fbo->bindDefault();
+
     const Mesh& mesh = *m_meshes.front();
-    auto tex1 = mesh.m_textures.find(0);
-    if (tex1 != mesh.m_textures.end())
-    {
-        tex1->second->bind(10);
-        glUniform1i(m_tex1Loc, 10);
-
-        glUniform1i(m_tex1Loaded, 1);
-    }
-    else
-    {
-        glUniform1i(m_tex1Loaded, 0);
-    }
-
-    auto tex2 = mesh.m_textures.find(1);
-    if (tex2 != mesh.m_textures.end())
-    {
-        tex2->second->bind(11);
-        glUniform1i(m_tex2Loc, 11);
-
-        glUniform1i(m_tex2Loaded, 1);
-    }
-    else
-    {
-        glUniform1i(m_tex2Loaded, 0);
-    }
+	for (int n = 0; n < 2; n++)
+	{
+		auto tex = mesh.m_textures.find(n);
+		if (tex != mesh.m_textures.end())
+		{
+			tex->second->bind(10 + n);
+			glUniform1i(m_texLoc[n], 10 + n);
+			glUniform1i(m_texLoaded[n], 1);
+		}
+		else
+		{
+			glUniform1i(m_texLoaded[n], 0);
+		}
+	}
 
     for (auto mesh : m_meshes)
     {
-        mesh->m_dataBuf.bind();
-        mesh->m_indicesBuf.bind();
+		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelVerts);
+		glVertexAttribPointer(m_vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(m_vertexLoc);
 
-        glVertexAttribPointer(m_vertexLoc, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)0);
-        glEnableVertexAttribArray(m_vertexLoc);
+		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelNorms);
+		glVertexAttribPointer(m_normalLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(m_normalLoc);
 
-        glVertexAttribPointer(m_normalLoc, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(m_normalLoc);
+		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatAmb);
+		glVertexAttribPointer(m_matAmbLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(m_matAmbLoc);
 
-        glVertexAttribPointer(m_UVLoc, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(6 * sizeof(float)));
-        glEnableVertexAttribArray(m_UVLoc);
+		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatDiff);
+		glVertexAttribPointer(m_matDiffLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(m_matDiffLoc);
 
-        glVertexAttribPointer(m_colorLoc, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (GLvoid*)(8 * sizeof(float)));
-        glEnableVertexAttribArray(m_colorLoc);
+		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatSpec);
+		glVertexAttribPointer(m_matSpecLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(m_matSpecLoc);
+
+		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatShin);
+		glVertexAttribPointer(m_matShinLoc, 1, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(m_matShinLoc);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         // Apply the geometric transforms to the scene (position/orientation)
         meshTransform(mesh);
 
-        glDrawElements(GL_TRIANGLES, (GLint)mesh->GetNIndices(), GL_UNSIGNED_INT, (void*)0);
+		glDrawArrays(GL_TRIANGLES, 0, mesh->m_model.faces().size());// *3);
     }
+
+	m_fbo->bindDefault();	
 
     m_program->release();
 }
@@ -406,33 +437,49 @@ void BasicGLWidget::loadShaders()
 	m_program->bind();
 
 	// Get the attribs locations of the vertex shader
-	m_vertexLoc = glGetAttribLocation(m_program->programId(), "vertex");
-	m_normalLoc = glGetAttribLocation(m_program->programId(), "normal");
-	m_UVLoc = glGetAttribLocation(m_program->programId(), "UV");
-	m_colorLoc = glGetAttribLocation(m_program->programId(), "color");
+	m_vertexLoc = m_program->attributeLocation("vertex");
+	m_normalLoc = m_program->attributeLocation("normal");
+	m_UVLoc = m_program->attributeLocation("UV");
+
+	m_matAmbLoc = m_program->attributeLocation("matamb");
+    m_matDiffLoc = m_program->attributeLocation("matdiff");
+	m_matSpecLoc = m_program->attributeLocation("matspec");
+	m_matShinLoc = m_program->attributeLocation("matshin");
 
 	std::cout << "	Attribute locations \n";
 	std::cout << "		vertex:		" << m_vertexLoc << "\n";
 	std::cout << "		normal:		" << m_normalLoc << "\n";
 	std::cout << "		UVs:		" << m_UVLoc << "\n";
-	std::cout << "		color:		" << m_colorLoc << "\n";
+	std::cout << "		ambient: 	" << m_matAmbLoc << "\n";
+	std::cout << "		diffuse:	" << m_matDiffLoc << "\n";
+	std::cout << "		specular:	" << m_matSpecLoc << "\n";
+	std::cout << "		shinyness:	" << m_matShinLoc << "\n";
 
 	// Get the uniforms locations of the vertex shader
 	m_projLoc = m_program->uniformLocation("projTransform");
 	m_viewLoc = m_program->uniformLocation("viewTransform");
 	m_transLoc = m_program->uniformLocation("sceneTransform");
 
-    m_tex1Loc = m_program->uniformLocation("tex1Texture");
-    m_tex2Loc = m_program->uniformLocation("tex2Texture");
-    m_tex1Loaded = m_program->uniformLocation("tex1Loaded");
-    m_tex2Loaded = m_program->uniformLocation("tex2Loaded");
+	m_lightPosLoc = m_program->uniformLocation("lightPos");
+	m_lightColLoc = m_program->uniformLocation("lightCol");
+
+    m_texLoc[0] = m_program->uniformLocation("tex1Texture");
+	m_texLoc[1] = m_program->uniformLocation("tex2Texture");
+    m_texLoaded[0] = m_program->uniformLocation("tex1Loaded");
+	m_texLoaded[1] = m_program->uniformLocation("tex2Loaded");
+
+
 
 	std::cout << "	Uniform locations \n";
-	std::cout << "		projection transform:		" << m_projLoc << "\n";
-	std::cout << "		view transform:			" << m_viewLoc << "\n";
-	std::cout << "		scene transform:		" << m_transLoc << "\n";
-
-	m_program->release();
+	std::cout << "		projection transform:   " << m_projLoc << "\n";
+	std::cout << "		view transform:         " << m_viewLoc << "\n";
+	std::cout << "		scene transform:        " << m_transLoc << "\n";
+	std::cout << "		light position:         " << m_lightPosLoc << "\n";
+	std::cout << "		light color:            " << m_lightColLoc << "\n";
+	std::cout << "		texture 1:              " << m_texLoc[0] << "\n";
+	std::cout << "		texture 2:              " << m_texLoc[1] << "\n";
+	std::cout << "		is texture 1 loaded:    " << m_texLoaded[0] << "\n";
+	std::cout << "		is texture 2 loaded:    " << m_texLoaded[1] << "\n";
 }
 
 void BasicGLWidget::reloadShaders()

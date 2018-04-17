@@ -1,19 +1,32 @@
 #version 330 core
 
-layout (location = 1) in vec3 vertex;
-layout (location = 2) in vec3 normal;
-layout (location = 3) in vec2 UV;
-layout (location = 4) in vec3 color;
+in vec3 vertex;
+in vec3 normal;
+in vec2 UV;
+
+in vec3 matamb;
+in vec3 matdiff;
+in vec3 matspec;
+in float matshin;
 
 // Observer Coordinate System
 out vec3 normalOCS;
 out vec2 UVOCS;
-out vec3 vertexColor;
+
+out vec3 fmatamb;
+out vec3 fmatdiff;
+out vec3 fmatspec;
+out float fmatshin;
 
 void main()
 {
     normalOCS = normal;
     UVOCS = UV;
-    vertexColor = color;
-    gl_Position = vec4(vertex, 1.0f);
+
+	fmatamb = matamb;
+    fmatdiff = matdiff;
+    fmatspec = matspec;
+    fmatshin = matshin;
+
+	gl_Position = vec4(vertex, 1.0f);
 }
