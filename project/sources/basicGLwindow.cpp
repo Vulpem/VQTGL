@@ -15,7 +15,7 @@ BasicGLWindow::BasicGLWindow(QString name)
 {
     m_ui.setupUi(this);
 
-    m_glWidget = new BasicGLWidget("./project/models/Patricio.obj");
+    m_glWidget = new BasicGLWidget("./project/models/TinySponza/tinyPatrick.obj");
 
 	m_glWidgetContainer = new QVBoxLayout(m_ui.qGLFrame);
 	m_glWidgetContainer->setMargin(0);

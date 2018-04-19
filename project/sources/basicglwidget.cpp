@@ -198,7 +198,7 @@ void BasicGLWidget::SetTranslationAll(QVector3D position)
 void BasicGLWidget::ResetScene()
 {
     SetRotationAll(QVector3D(0.f, 0.f, 0.f));
-    SetTranslationAll(QVector3D(0.f, 0.f, -40.f));
+    SetTranslationAll(QVector3D(0.f, 0.f, -10.f));
 }
 
 std::vector<MeshPtr> BasicGLWidget::GetMeshes()
@@ -521,8 +521,8 @@ void BasicGLWidget::projectionTransform()
 	proj.setToIdentity();
 	
 	// TO DO: Set the camera parameters 
-	m_zNear = m_sceneRadius;
-	m_zFar = 3.0f * m_sceneRadius;
+	m_zNear = 0.02f;
+	m_zFar = 1000.f;
 
 	proj.perspective(45.0f, GLfloat(m_width) / m_height, 0.01f, 100.0f);
 
