@@ -11,9 +11,11 @@
 #include <iostream>
 #include <gl\GLU.h>
 
+#include "basicglwidget.h"
 
-Mesh::Mesh()
-    : m_position(0.f, 0.f, 0.f)
+
+Mesh::Mesh(BasicGLWidget& owner)
+    : m_position(0.f, 0.f, -40.f)
     , m_scale(1.f, 1.f, 1.f)
     , m_rotation(0.f, 0.f, 0.f)
 	, m_modelFilename("")
@@ -23,18 +25,20 @@ Mesh::Mesh()
 	, m_VBOModelMatDiff(QOpenGLBuffer::Type::VertexBuffer)
 	, m_VBOModelMatSpec(QOpenGLBuffer::Type::VertexBuffer)
 	, m_VBOModelMatShin(QOpenGLBuffer::Type::VertexBuffer)
+	, m_owner(owner)
 {
 }
 
 Mesh::~Mesh()
 {
-	glDisableVertexAttribArray(0);
-	glDeleteBuffers(1, &m_VBOModelVerts);
-	glDeleteBuffers(1, &m_VBOModelNorms);
-	glDeleteBuffers(1, &m_VBOModelMatAmb);
-	glDeleteBuffers(1, &m_VBOModelMatDiff);
-	glDeleteBuffers(1, &m_VBOModelMatSpec);
-	glDeleteBuffers(1, &m_VBOModelMatShin);
+	m_owner.makeCurrent();
+	//glDisableVertexAttribArray(0);
+	m_VBOModelVerts.destroy();
+	m_VBOModelNorms.destroy();
+	m_VBOModelMatAmb.destroy();
+	m_VBOModelMatDiff.destroy();
+	m_VBOModelMatSpec.destroy();
+	m_VBOModelMatShin.destroy();
 }
 
 QMatrix4x4 Mesh::GetTransform()
@@ -53,37 +57,37 @@ void Mesh::Load(QString filename)
 	// Load the OBJ model - BEFORE creating the buffers!
 	m_model.load(filename.toStdString());
 
+	m_owner.makeCurrent();
 	// VBO Vertices
-	glGenBuffers(1, &m_VBOModelVerts);
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBOModelVerts);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*m_model.faces().size() * 3 * 3, m_model.VBO_vertices(), GL_STATIC_DRAW);
+	m_VBOModelVerts.create();
+	m_VBOModelVerts.bind();
+	m_VBOModelVerts.allocate(m_model.VBO_vertices(), sizeof(GLfloat)*m_model.faces().size() * 3 * 3);
 
 	// VBO Normals
-	glGenBuffers(1, &m_VBOModelNorms);
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBOModelNorms);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*m_model.faces().size() * 3 * 3, m_model.VBO_normals(), GL_STATIC_DRAW);
+	m_VBOModelNorms.create();
+	m_VBOModelNorms.bind();
+	m_VBOModelNorms.allocate(m_model.VBO_normals(), sizeof(GLfloat)*m_model.faces().size() * 3 * 3);
 
 	// Instead of colors, we pass the materials 
 	// VBO Ambient component
-	glGenBuffers(1, &m_VBOModelMatAmb);
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBOModelMatAmb);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*m_model.faces().size() * 3 * 3, m_model.VBO_matamb(), GL_STATIC_DRAW);
+	m_VBOModelMatAmb.create();
+	m_VBOModelMatAmb.bind();
+	m_VBOModelMatAmb.allocate(m_model.VBO_matamb(), sizeof(GLfloat)*m_model.faces().size() * 3 * 3);
 
 	// VBO Diffuse component
-	glGenBuffers(1, &m_VBOModelMatDiff);
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBOModelMatDiff);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*m_model.faces().size() * 3 * 3, m_model.VBO_matdiff(), GL_STATIC_DRAW);
+	m_VBOModelMatDiff.create();
+	m_VBOModelMatDiff.bind();
+	m_VBOModelMatDiff.allocate(m_model.VBO_matdiff(), sizeof(GLfloat)*m_model.faces().size() * 3 * 3);
 
 	// VBO Specular component
-	glGenBuffers(1, &m_VBOModelMatSpec);
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBOModelMatSpec);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*m_model.faces().size() * 3 * 3, m_model.VBO_matspec(), GL_STATIC_DRAW);
+	m_VBOModelMatSpec.create();
+	m_VBOModelMatSpec.bind();
+	m_VBOModelMatSpec.allocate(m_model.VBO_matspec(), sizeof(GLfloat)*m_model.faces().size() * 3 * 3);
 
 	// VBO Shininess component
-	glGenBuffers(1, &m_VBOModelMatShin);
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBOModelMatShin);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*m_model.faces().size() * 3, m_model.VBO_matshin(), GL_STATIC_DRAW);
-
+	m_VBOModelMatShin.create();
+	m_VBOModelMatShin.bind();
+	m_VBOModelMatShin.allocate(m_model.VBO_matshin(), sizeof(GLfloat)*m_model.faces().size() * 3);
 }
 
 void Mesh::LoadTexture(QString filename, int n)
@@ -95,6 +99,7 @@ void Mesh::LoadTexture(QString filename, int n)
 
 void Mesh::UnloadTexture(int n)
 {
+	m_owner.makeCurrent();
     auto tex = m_textures.find(n);
     if (tex != m_textures.end())
     {
@@ -148,7 +153,7 @@ QSize BasicGLWidget::sizeHint() const
 
 MeshPtr BasicGLWidget::LoadModel(QString modelFilename)
 {
-	MeshPtr p = std::make_shared<Mesh>();
+	MeshPtr p = std::make_shared<Mesh>(*this);
 	p->Load(modelFilename);
 	m_meshes.push_back(p);
 	return p;
@@ -277,8 +282,6 @@ void BasicGLWidget::cleanup()
     
 	delete m_program;
     m_program = 0;
-    
-	doneCurrent();
 }
 
 void BasicGLWidget::initializeGL()
@@ -301,6 +304,12 @@ void BasicGLWidget::initializeGL()
 	projectionTransform();
 	viewTransform();
     computeBBoxScene();
+	initFBO();
+}
+
+void BasicGLWidget::initFBO()
+{
+	makeCurrent();
 
 	QOpenGLFramebufferObjectFormat format;
 	format.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
@@ -349,29 +358,31 @@ void BasicGLWidget::paintGL()
 		}
 	}
 
+	glUniform3f(m_lightColLoc, 1.f, 1.f, 1.f);
+
     for (auto mesh : m_meshes)
     {
-		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelVerts);
+		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelVerts.bufferId());
 		glVertexAttribPointer(m_vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(m_vertexLoc);
 
-		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelNorms);
+		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelNorms.bufferId());
 		glVertexAttribPointer(m_normalLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(m_normalLoc);
 
-		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatAmb);
+		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatAmb.bufferId());
 		glVertexAttribPointer(m_matAmbLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(m_matAmbLoc);
 
-		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatDiff);
+		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatDiff.bufferId());
 		glVertexAttribPointer(m_matDiffLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(m_matDiffLoc);
 
-		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatSpec);
+		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatSpec.bufferId());
 		glVertexAttribPointer(m_matSpecLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(m_matSpecLoc);
 
-		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatShin);
+		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatShin.bufferId());
 		glVertexAttribPointer(m_matShinLoc, 1, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(m_matShinLoc);
 
@@ -380,7 +391,7 @@ void BasicGLWidget::paintGL()
         // Apply the geometric transforms to the scene (position/orientation)
         meshTransform(mesh);
 
-		glDrawArrays(GL_TRIANGLES, 0, mesh->m_model.faces().size());// *3);
+		glDrawArrays(GL_TRIANGLES, 0, mesh->m_model.faces().size() *3);
     }
 
 	m_fbo->bindDefault();	
@@ -410,6 +421,7 @@ void BasicGLWidget::resizeGL(int w, int h)
 
 void BasicGLWidget::loadShaders()
 {
+	makeCurrent();
 	std::cout << "Loading Shaders: \n";
 
 	// Declaration of the shaders
@@ -468,8 +480,6 @@ void BasicGLWidget::loadShaders()
     m_texLoaded[0] = m_program->uniformLocation("tex1Loaded");
 	m_texLoaded[1] = m_program->uniformLocation("tex2Loaded");
 
-
-
 	std::cout << "	Uniform locations \n";
 	std::cout << "		projection transform:   " << m_projLoc << "\n";
 	std::cout << "		view transform:         " << m_viewLoc << "\n";
@@ -480,6 +490,8 @@ void BasicGLWidget::loadShaders()
 	std::cout << "		texture 2:              " << m_texLoc[1] << "\n";
 	std::cout << "		is texture 1 loaded:    " << m_texLoaded[0] << "\n";
 	std::cout << "		is texture 2 loaded:    " << m_texLoaded[1] << "\n";
+
+	m_program->release();
 }
 
 void BasicGLWidget::reloadShaders()
@@ -500,6 +512,8 @@ float BasicGLWidget::GetFPS()
 
 void BasicGLWidget::projectionTransform()
 {
+	makeCurrent();
+
     m_program->bind();
 
 	// Set the camera type
@@ -526,6 +540,7 @@ void BasicGLWidget::ResetCamera()
 
 void BasicGLWidget::viewTransform()
 {
+	makeCurrent();
     m_program->bind();
 
 	// Send the matrix to the shader
@@ -557,6 +572,7 @@ void BasicGLWidget::computeBBoxScene()
 
 void BasicGLWidget::meshTransform(MeshPtr mesh)
 {
+	makeCurrent();
 	// Send the matrix to the shader
 	m_program->setUniformValue(m_transLoc, mesh->GetTransform());
 }

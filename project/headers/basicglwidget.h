@@ -29,6 +29,7 @@
 
 
 typedef std::unique_ptr<QOpenGLTexture> TexturePtr;
+class BasicGLWidget;
 
 struct float3
 {
@@ -45,7 +46,7 @@ struct float2
 class Mesh : protected QOpenGLFunctions_3_3_Core
 {
 public:
-    Mesh();
+    Mesh(BasicGLWidget& owner);
     ~Mesh();
 
 	QString m_modelFilename;
@@ -59,17 +60,18 @@ public:
     QVector3D m_scale;
     QVector3D m_rotation;
 
-	GLuint m_VBOModelVerts;
-	GLuint m_VBOModelNorms;
-	GLuint m_VBOModelMatAmb;
-	GLuint m_VBOModelMatDiff;
-	GLuint m_VBOModelMatSpec;
-	GLuint m_VBOModelMatShin;
+	QOpenGLBuffer m_VBOModelVerts;
+	QOpenGLBuffer m_VBOModelNorms;
+	QOpenGLBuffer m_VBOModelMatAmb;
+	QOpenGLBuffer m_VBOModelMatDiff;
+	QOpenGLBuffer m_VBOModelMatSpec;
+	QOpenGLBuffer m_VBOModelMatShin;
 
 	Model m_model;
     std::map<int, TexturePtr> m_textures;
 private:
     uint m_numIndices;
+	BasicGLWidget& m_owner;
 };
 
 typedef std::shared_ptr<Mesh> MeshPtr;
@@ -130,6 +132,7 @@ signals:
 
 protected:
     void initializeGL() override;
+	void initFBO();
 	void paintGL() override;
     void resizeGL(int width, int height) override;
 

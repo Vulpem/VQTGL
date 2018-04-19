@@ -19,13 +19,11 @@ uniform vec4 lightPos;
 uniform vec3 lightCol;
 
 
-out vec4 FragColor;
-
 layout (location = 0) out vec4 FragColorRT0;
 layout (location = 1) out vec4 FragColorDepth;
 layout (location = 2) out vec4 FragColorNormals;
 
-vec3 ambientLight = vec3(0.2, 0.2, 0.2);
+vec3 ambientLight = vec3(0.3, 0.3, 0.3);
 
 vec3 Lambert (vec3 normal, vec3 L)
 {
@@ -89,8 +87,6 @@ vec4 BlendTextures ()
 
 void main()
 {
-
-
 	vec3 n = normalize(normal);
 	vec3 L = normalize(lightPos.xyz - vec3(vertex).xyz);
 	vec4 col = BlendTextures();
