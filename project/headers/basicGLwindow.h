@@ -15,8 +15,8 @@ class BasicGLWindow : public BasicWindow
 
 	enum class InputMovement
 	{
-		FPScamera,
-		scene
+        scene,
+		FPScamera		
 	};
 
 public:

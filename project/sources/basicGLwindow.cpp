@@ -12,6 +12,7 @@
 
 BasicGLWindow::BasicGLWindow(QString name)
     : BasicWindow(name)
+    , m_inputMovement(InputMovement::FPScamera)
 {
     m_ui.setupUi(this);
 

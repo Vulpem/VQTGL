@@ -79,12 +79,12 @@
         <widget class="QComboBox" name="MoveControlsComboBox">
          <item>
           <property name="text">
-           <string>Scene</string>
+           <string>Camera</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>Camera</string>
+           <string>Scene</string>
           </property>
          </item>
         </widget>
