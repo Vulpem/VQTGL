@@ -62,6 +62,7 @@ public:
 
 	QOpenGLBuffer m_VBOModelVerts;
 	QOpenGLBuffer m_VBOModelNorms;
+    QOpenGLBuffer m_VBOModelUVs;
 	QOpenGLBuffer m_VBOModelMatAmb;
 	QOpenGLBuffer m_VBOModelMatDiff;
 	QOpenGLBuffer m_VBOModelMatSpec;

@@ -21,6 +21,7 @@ Mesh::Mesh(BasicGLWidget& owner)
 	, m_modelFilename("")
     , m_VBOModelVerts(QOpenGLBuffer::Type::VertexBuffer)
     , m_VBOModelNorms(QOpenGLBuffer::Type::VertexBuffer)
+    , m_VBOModelUVs(QOpenGLBuffer::Type::VertexBuffer)
 	, m_VBOModelMatAmb(QOpenGLBuffer::Type::VertexBuffer)
 	, m_VBOModelMatDiff(QOpenGLBuffer::Type::VertexBuffer)
 	, m_VBOModelMatSpec(QOpenGLBuffer::Type::VertexBuffer)
@@ -67,6 +68,11 @@ void Mesh::Load(QString filename)
 	m_VBOModelNorms.create();
 	m_VBOModelNorms.bind();
 	m_VBOModelNorms.allocate(m_model.VBO_normals(), sizeof(GLfloat)*m_model.faces().size() * 3 * 3);
+
+    //VBO UVs
+    m_VBOModelUVs.create();
+    m_VBOModelUVs.bind();
+    m_VBOModelUVs.allocate(m_model.VBO_UVs(), sizeof(GLfloat)*m_model.faces().size() * 2 * 3);
 
 	// Instead of colors, we pass the materials 
 	// VBO Ambient component
@@ -369,6 +375,10 @@ void BasicGLWidget::paintGL()
 		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelNorms.bufferId());
 		glVertexAttribPointer(m_normalLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(m_normalLoc);
+
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelUVs.bufferId());
+        glVertexAttribPointer(m_UVLoc, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(m_UVLoc);
 
 		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatAmb.bufferId());
 		glVertexAttribPointer(m_matAmbLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
