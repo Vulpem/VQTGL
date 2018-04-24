@@ -34,17 +34,17 @@ static string modelPath("");
 
 // ======== Constructors and Destructors =======
 Model::Model() : _vertices(0), _normals(0), _UVs(0), _faces(0) {
-  _VBO_vertices = _VBO_normals = _VBO_matamb = _VBO_matdiff = _VBO_matspec = _VBO_matshin = NULL;
+  _VBO_vertices = _VBO_normals = _VBO_matamb = _VBO_matdiff = _VBO_matspec = _VBO_matshin = _VBO_UVs = nullptr;
 }
 
 Model::~Model() {
-  if (_VBO_vertices != NULL) delete _VBO_vertices;
-  if (_VBO_normals != NULL) delete _VBO_normals;
-  if (_VBO_UVs != NULL) delete _VBO_UVs;
-  if (_VBO_matamb != NULL) delete _VBO_matamb;
-  if (_VBO_matdiff != NULL) delete _VBO_matdiff;
-  if (_VBO_matspec != NULL) delete _VBO_matspec;
-  if (_VBO_matshin != NULL) delete _VBO_matshin;
+  if (_VBO_vertices != nullptr) delete _VBO_vertices;
+  if (_VBO_normals != nullptr) delete _VBO_normals;
+  if (_VBO_UVs != nullptr) delete _VBO_UVs;
+  if (_VBO_matamb != nullptr) delete _VBO_matamb;
+  if (_VBO_matdiff != nullptr) delete _VBO_matdiff;
+  if (_VBO_matspec != nullptr) delete _VBO_matspec;
+  if (_VBO_matshin != nullptr) delete _VBO_matshin;
 }
 
 Material::Material() : name("__load_object_default_material__") {
@@ -505,11 +505,11 @@ static void ompleVBOs(vector<Face> &_faces,
                 {
                     if (_UVs.size() != 0)
                     {
-                        _VBO_UVs[(index * 2) + j] = _UVs[_faces[f].tc[i] + j];
+                        //_VBO_UVs[(index * 2) + j] = _UVs[_faces[f].tc[i] + j];
                     }
                     else
                     {
-                        _VBO_UVs[(index * 2) + j] = 0.f;
+                      //  _VBO_UVs[(index * 2) + j] = 0.f;
                     }
                 }
                 _VBO_mata[(index * 3) + j] = mat.ambient[j];
