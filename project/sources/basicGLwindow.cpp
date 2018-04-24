@@ -257,7 +257,7 @@ void BasicGLWindow::wheelEvent(QWheelEvent * event)
     {
 		if (m_inputMovement == InputMovement::FPScamera)
 		{
-			m_glWidget->TranslateCamera(m_glWidget->GetCameraForward());
+			m_glWidget->TranslateCamera(m_glWidget->GetCameraForward() * degrees / 10.f);
 		}
 		else
 		{
