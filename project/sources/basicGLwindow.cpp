@@ -16,7 +16,7 @@ BasicGLWindow::BasicGLWindow(QString name)
 {
     m_ui.setupUi(this);
 
-    m_glWidget = new BasicGLWidget("./project/models/TinySponza/tinyPatrick.obj");
+    m_glWidget = new BasicGLWidget("./project/models/mech.OBJ");
 
 	m_glWidgetContainer = new QVBoxLayout(m_ui.qGLFrame);
 	m_glWidgetContainer->setMargin(0);
@@ -97,7 +97,7 @@ void BasicGLWindow::SLOT_LoadModel()
 void BasicGLWindow::SLOT_LoadTexture()
 {
     m_filenameTex1 = QFileDialog::getOpenFileName(this, tr("Load Texture"),
-        "./textures/", tr("*.png;;*.jpg *.jpeg;;*.bmp;;*.gif;;*.pbm *.pgm *.ppm;;*.xbm *.xpm;;All files (*.*)"));
+        "./project/textures", tr("*.png;;*.jpg *.jpeg;;*.bmp;;*.gif;;*.pbm *.pgm *.ppm;;*.xbm *.xpm;;All files (*.*)"));
 
     if (m_filenameTex1.size() != 0) {
         m_glWidget->LoadTexture(m_filenameTex1, 0);
@@ -129,7 +129,7 @@ void BasicGLWindow::SLOT_UnloadTexture()
 void BasicGLWindow::SLOT_LoadTexture2()
 {
     m_filenameTex2 = QFileDialog::getOpenFileName(this, tr("Load Texture"),
-        "./textures/", tr("*.png;;*.jpg *.jpeg;;*.bmp;;*.gif;;*.pbm *.pgm *.ppm;;*.xbm *.xpm;;All files (*.*)"));
+        "./project/textures", tr("*.png;;*.jpg *.jpeg;;*.bmp;;*.gif;;*.pbm *.pgm *.ppm;;*.xbm *.xpm;;All files (*.*)"));
 
     if (m_filenameTex2.size() != 0) {
         m_glWidget->LoadTexture(m_filenameTex2, 1);

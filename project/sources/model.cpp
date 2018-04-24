@@ -103,7 +103,7 @@ void Model::load(std::string filename) {
 	for (int i = 0; i < 3; ++i) { ss >> coord; _normals.push_back(coord);}
 	break;
       case 't':  // texture coords.
-    for (int i = 0; i < 2; ++i) { ss << coord; _UVs.push_back(coord); }
+    for (int i = 0; i < 3; ++i) { ss >> coord; _UVs.push_back(coord); }
 	break;
       default:
 	cerr << "Seen unknown vertex info of type '" << c << "', ignoring it..." << endl;
@@ -342,19 +342,19 @@ void Model::parseVTN(stringstream & ss, string & block) {
   char sep;
   ssb >> index; ssb >> sep; assert(sep == '/'); ssb >> t >> sep; assert(sep == '/');
   ssb >> n;
-  f.v.push_back(3*index-3); f.n.push_back(3*n-3); f.tc.push_back(2 * t - 2);
+  f.v.push_back(3*index-3); f.n.push_back(3*n-3); f.tc.push_back(3 * t - 3);
 
   ss >> block;
   ssb.clear(); ssb.str(block);
   ssb >> index; ssb >> sep; assert(sep == '/'); ssb >> t >> sep; assert(sep == '/');
   ssb >> n;
-  f.v.push_back(3*index-3); f.n.push_back(3*n-3); f.tc.push_back(2 * t - 2);
+  f.v.push_back(3*index-3); f.n.push_back(3*n-3); f.tc.push_back(3 * t - 3);
   
   ss >> block;
   ssb.clear(); ssb.str(block);
   ssb >> index; ssb >> sep; assert(sep == '/'); ssb >> t >> sep; assert(sep == '/');
   ssb >> n;
-  f.v.push_back(3*index-3); f.n.push_back(3*n-3); f.tc.push_back(2 * t - 2);
+  f.v.push_back(3*index-3); f.n.push_back(3*n-3); f.tc.push_back(3 * t - 3);
   f.mat = material;
   _faces.push_back(f);
   Face fAnt(f);
@@ -365,7 +365,7 @@ void Model::parseVTN(stringstream & ss, string & block) {
     ssb >> n;
     f.v.push_back(fAnt.v[0]); f.n.push_back(fAnt.n[0]); f.tc.push_back(fAnt.tc[0]);
     f.v.push_back(fAnt.v[2]); f.n.push_back(fAnt.n[2]); f.tc.push_back(fAnt.tc[2]);
-    f.v.push_back(3*index-3); f.n.push_back(3*n-3); f.tc.push_back(2 * t - 2);
+    f.v.push_back(3*index-3); f.n.push_back(3*n-3); f.tc.push_back(3 * t - 3);
     _faces.push_back(f);
     fAnt = f;
   }
@@ -500,7 +500,7 @@ static void ompleVBOs(vector<Face> &_faces,
                 {
                     _VBO_norm[(index * 3) + j] = _faces[f].normalC[j];
                 }
-                
+
                 if (j < 2)
                 {
                     if (_UVs.size() != 0)
@@ -512,12 +512,13 @@ static void ompleVBOs(vector<Face> &_faces,
                         _VBO_UVs[(index * 2) + j] = 0.f;
                     }
                 }
+
                 _VBO_mata[(index * 3) + j] = mat.ambient[j];
                 _VBO_matd[(index * 3) + j] = mat.diffuse[j];
                 _VBO_matsp[(index * 3) + j] = mat.specular[j];
             }
             _VBO_matsh[index] = mat.shininess;
-            index ++;
+            index++;
         }
     }
 }
