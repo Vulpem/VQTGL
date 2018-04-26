@@ -485,6 +485,9 @@ void BasicGLWidget::loadShaders()
 	m_programs.sceneRender.m_lightPosLoc = m_programs.sceneRender.m_program->uniformLocation("lightPos");
 	m_programs.sceneRender.m_lightColLoc = m_programs.sceneRender.m_program->uniformLocation("lightCol");
 
+	m_programs.sceneRender.m_farPlaneLoc = m_programs.sceneRender.m_program->uniformLocation("farPlane");
+	m_programs.sceneRender.m_nearPlaneLoc = m_programs.sceneRender.m_program->uniformLocation("nearPlane");
+
     m_programs.sceneRender.m_texLoc[0] = m_programs.sceneRender.m_program->uniformLocation("tex1Texture");
 	m_programs.sceneRender.m_texLoc[1] = m_programs.sceneRender.m_program->uniformLocation("tex2Texture");
     m_programs.sceneRender.m_texLoaded[0] = m_programs.sceneRender.m_program->uniformLocation("tex1Loaded");
@@ -496,6 +499,8 @@ void BasicGLWidget::loadShaders()
 	std::cout << "		scene transform:        " << m_programs.sceneRender.m_transLoc << "\n";
 	std::cout << "		light position:         " << m_programs.sceneRender.m_lightPosLoc << "\n";
 	std::cout << "		light color:            " << m_programs.sceneRender.m_lightColLoc << "\n";
+	std::cout << "		far plane:              " << m_programs.sceneRender.m_farPlaneLoc << "\n";
+	std::cout << "		near plane:             " << m_programs.sceneRender.m_nearPlaneLoc << "\n";
 	std::cout << "		texture 1:              " << m_programs.sceneRender.m_texLoc[0] << "\n";
 	std::cout << "		texture 2:              " << m_programs.sceneRender.m_texLoc[1] << "\n";
 	std::cout << "		is texture 1 loaded:    " << m_programs.sceneRender.m_texLoaded[0] << "\n";
@@ -538,6 +543,9 @@ void BasicGLWidget::projectionTransform()
 
 	// Send the matrix to the shader
 	m_programs.sceneRender.m_program->setUniformValue(m_programs.sceneRender.m_projLoc, proj);
+
+	m_programs.sceneRender.m_program->setUniformValue(m_programs.sceneRender.m_farPlaneLoc, m_zFar);
+	m_programs.sceneRender.m_program->setUniformValue(m_programs.sceneRender.m_nearPlaneLoc, m_zNear);
 
 	m_programs.sceneRender.m_program->release();
 }

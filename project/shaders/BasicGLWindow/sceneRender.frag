@@ -9,6 +9,8 @@ in vec3 matdiff;
 in vec3 matspec;
 in float matshin;
 
+uniform float farPlane;
+uniform float nearPlane;
 
 uniform int tex1Loaded;
 uniform int tex2Loaded;
@@ -92,6 +94,13 @@ void main()
 	vec4 col = BlendTextures();
 
 	FragColorRT0 = vec4(Phong(n, L, vertex), 1) * col;
-	FragColorDepth = vec4(gl_FragCoord.z,gl_FragCoord.z,gl_FragCoord.z,1);
+
+	float depthColor = (gl_FragCoord.z / gl_FragCoord.w) / (farPlane - nearPlane);
+	FragColorDepth = vec4(depthColor,depthColor,depthColor,1);
+
 	FragColorNormals = vec4(n.x / 2.0 + 0.5f, n.y / 2.0 + 0.5f, n.z / 2.0 + 0.5f, 1);
+
+		//Debug
+	//FragColorRT0 = FragColorDepth;
+	//FragColorRT0 = FragColorNormals;
 }

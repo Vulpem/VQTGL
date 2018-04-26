@@ -188,6 +188,7 @@ private:
 			GLuint m_vertexLoc, m_normalLoc, m_UVLoc;
 			GLuint m_matAmbLoc, m_matDiffLoc, m_matSpecLoc, m_matShinLoc;
 			GLuint m_lightPosLoc, m_lightColLoc;
+			GLuint m_farPlaneLoc, m_nearPlaneLoc;
 
 			GLuint m_texLoc[2];
 			GLuint m_texLoaded[2];
