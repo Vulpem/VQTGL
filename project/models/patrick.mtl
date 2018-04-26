@@ -1,0 +1,48 @@
+newmtl patrick1:Brows_Color_png_Color_png
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.50
+Ks 0.00 0.00 0.00
+Ns 0.00
+newmtl patrick1:Eyes_Color_png_Color_png_002
+illum 4
+Kd 0.80 0.80 0.80
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.50
+Ks 0.50 0.50 0.50
+Ns 92.16
+newmtl patrick1:Mouth_Color_png_001
+illum 4
+Kd 0.51 0.03 0.12
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.50
+Ks 0.00 0.00 0.00
+Ns 0.00
+newmtl patrick1:Pants_Flowers_png_Flowers_png
+illum 4
+Kd 0.56 0.68 0.10
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.50
+Ks 0.00 0.00 0.00
+Ns 0.00
+newmtl patrick1:Pupils_Color_png_Color_png_003
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.50
+Ks 0.50 0.50 0.50
+Ns 92.16
+newmtl patrick1:Skin_skin_png_Skin_Patrick_png
+illum 4
+Kd 0.79 0.43 0.35
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.50
+Ks 0.00 0.00 0.00
+Ns 0.00

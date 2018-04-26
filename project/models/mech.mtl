@@ -1,12 +1,6 @@
-newmtl MechSG
+newmtl mech:MechSG
 illum 4
 Kd 1.00 1.00 1.00
-Ka 0.24 0.24 0.24
-Tf 1.00 1.00 1.00
-Ni 1.00
-newmtl PlaneSG
-illum 4
-Kd 0.75 0.76 0.06
-Ka 0.00 0.00 0.00
+Ka 0.27 0.27 0.27
 Tf 1.00 1.00 1.00
 Ni 1.00
