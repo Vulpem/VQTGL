@@ -6,46 +6,46 @@
 #include <qinputdialog.h>
 #include <qspinbox.h>
 #include <qcheckbox.h>
+#include <qfiledialog.h>
 
 #include <iostream>
 
 BasicGLWindow::BasicGLWindow(QString name)
     : BasicWindow(name)
+    , m_inputMovement(InputMovement::FPScamera)
 {
     m_ui.setupUi(this);
 
-    m_glWidget = new BasicGLWidget;
+    m_glWidget = new BasicGLWidget("./project/models/mech.OBJ");
 
-    QVBoxLayout* layoutInputs = new QVBoxLayout();
-	// Insert the m_glWidget in the GUI
-	QHBoxLayout* layoutFrame = new QHBoxLayout(m_ui.qGLFrame);
-	layoutFrame->setMargin(0);
-	layoutFrame->addWidget(m_glWidget);
-    layoutFrame->addLayout(layoutInputs);
-
-    QLabel* fps = new QLabel("Fps:");
-    layoutInputs->addWidget(fps);
-    m_fpsLabel = new QLabel("00");
-    layoutInputs->addWidget(m_fpsLabel);
-
-    QLabel* title = new QLabel("Controls:");
-    layoutInputs->addWidget(title);
-
-    m_moveSceneCheckbox = new QCheckBox("Move Scene");
-    layoutInputs->addWidget(m_moveSceneCheckbox);
-
-    m_moveCameraCheckbox = new QCheckBox("Move Camera");
-    layoutInputs->addWidget(m_moveCameraCheckbox);
-
-    layoutInputs->addStretch(1);
+	m_glWidgetContainer = new QVBoxLayout(m_ui.qGLFrame);
+	m_glWidgetContainer->setMargin(0);
+	m_glWidgetContainer->addWidget(m_glWidget);
+	m_glWidget->show();
 
 
-    connect(m_moveCameraCheckbox, &QCheckBox::stateChanged, this, &BasicGLWindow::SLOT_MoveCameraCheckbox);
-    connect(m_moveSceneCheckbox, &QCheckBox::stateChanged, this, &BasicGLWindow::SLOT_MoveSceneCheckbox);
-    connect(m_glWidget, &BasicGLWidget::UpdatedFPS, this, &BasicGLWindow::SLOT_UpdateFPS);
-    m_moveSceneCheckbox->setCheckState(Qt::CheckState::Checked);
+    QGraphicsScene *scene = new QGraphicsScene();
+    scene->clear();
+    scene->addText("(Empty)");
 
-    createBoxScene();
+    m_ui.qTex1View->resetMatrix();
+    m_ui.qTex1View->setScene(scene);
+    m_ui.qTex1View->show();
+
+    m_ui.qTex2View->resetMatrix();
+    m_ui.qTex2View->setScene(scene);
+    m_ui.qTex2View->show();
+
+
+	connect(m_ui.qLoadModelButton, &QPushButton::clicked, this, &BasicGLWindow::SLOT_LoadModel);
+	connect(m_ui.MoveControlsComboBox, &QComboBox::currentTextChanged, this, &BasicGLWindow::SLOT_ChangedInputMovement);
+
+	connect(m_glWidget, &BasicGLWidget::UpdatedFPS, this, &BasicGLWindow::SLOT_UpdateFPS);
+
+    connect(m_ui.qLoadTex1Button, &QPushButton::clicked, this, &BasicGLWindow::SLOT_LoadTexture);
+    connect(m_ui.qDeleteTex1Button, &QPushButton::clicked, this, &BasicGLWindow::SLOT_UnloadTexture);
+    connect(m_ui.qLoadTex2Button, &QPushButton::clicked, this, &BasicGLWindow::SLOT_LoadTexture2);
+    connect(m_ui.qDeleteTex2Button, &QPushButton::clicked, this, &BasicGLWindow::SLOT_UnloadTexture2);
 
 	show();
 }
@@ -58,72 +58,104 @@ BasicGLWindow::~BasicGLWindow()
 	}
 }
 
-void BasicGLWindow::SLOT_MoveSceneCheckbox(int val)
+void BasicGLWindow::SLOT_ChangedInputMovement(QString val)
 {
-    m_movingCamera = !val;
-    if (m_movingCamera)
-    {
-        m_moveCameraCheckbox->setCheckState(Qt::CheckState::Checked);
-    }
-    else
-    {
-        m_moveCameraCheckbox->setCheckState(Qt::CheckState::Unchecked);
-    }
-}
-
-void BasicGLWindow::SLOT_MoveCameraCheckbox(int val)
-{
-    m_movingCamera = val;
-    if (m_movingCamera)
-    {
-        m_moveSceneCheckbox->setCheckState(Qt::CheckState::Unchecked);
-    }
-    else
-    {
-        m_moveSceneCheckbox->setCheckState(Qt::CheckState::Checked);
-    }
+	if (val == "Camera")
+	{
+		m_inputMovement = InputMovement::FPScamera;
+	}
+	else if (val == "Scene")
+	{
+		m_inputMovement = InputMovement::scene;
+	}
 }
 
 void BasicGLWindow::SLOT_UpdateFPS(float FPS)
 {
-    m_fpsLabel->setText(QString::number(FPS));
+    //m_fpsLabel->setText(QString::number(FPS));
 }
 
-void BasicGLWindow::createBoxScene()
+void BasicGLWindow::SLOT_LoadModel()
 {
-    std::vector<Vertex> vertices;
-    std::vector<uint> indices = {
-        0, 2, 1,
-        1, 2, 3
-    };
+	QString filename = QFileDialog::getOpenFileName((QWidget*)this, tr("Load Model"),
+		"./project/models/", tr("3D Models (*.obj)"));
+	if (filename.size() != 0)
+	{
+		// We delete the glWidget and create another one to restart the GLContext
+		// Otherwise, the painter does not work and the fps are not shown
+		if (m_glWidget != nullptr) {
+			delete m_glWidget;
+			m_glWidget = nullptr;
+		}
 
-    vertices.push_back({
-        { -10.f, +10.f, 0.f },
-        { 0.f,0.f,-1.f },
-        { 0.f,0.f },
-        { 0.f, 1.f, 0.f }
-        });
-    vertices.push_back({
-        { +10.f, +10.f, 0.f },
-        { 0.f,0.f,-1.f },
-        { 1.f,0.f },
-        { 0.f, 1.f, 1.f }
-        });
-    vertices.push_back({
-        { -10.f, -10.f, -0.f },
-        { 0.f,0.f,-1.f },
-        { 0.f,1.f },
-        { 0.f, 0.f, 1.f }
-        });
-    vertices.push_back({
-        { +10.f, -10.f, -0.f },
-        { 0.f,0.f,-1.f },
-        { 1.f,1.f },
-        { 1.f, 0.f, 0.f }
-        });
+		m_glWidget = new BasicGLWidget(filename);
+		m_glWidgetContainer->addWidget(m_glWidget);
+		m_glWidget->show();
+	}
+}
 
-    MeshPtr p = m_glWidget->AddMesh(vertices, indices);
-    p->m_position.setZ(-40);
+void BasicGLWindow::SLOT_LoadTexture()
+{
+    m_filenameTex1 = QFileDialog::getOpenFileName(this, tr("Load Texture"),
+        "./project/textures", tr("*.png;;*.jpg *.jpeg;;*.bmp;;*.gif;;*.pbm *.pgm *.ppm;;*.xbm *.xpm;;All files (*.*)"));
+
+    if (m_filenameTex1.size() != 0) {
+        m_glWidget->LoadTexture(m_filenameTex1, 0);
+
+        QGraphicsScene* texture = new QGraphicsScene();
+        texture->addPixmap(m_filenameTex1);
+        m_ui.qTex1View->setScene(texture);
+        m_ui.qTex1View->fitInView(texture->itemsBoundingRect());
+        m_ui.qTex1View->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+        m_ui.qTex1View->show();
+    }
+}
+
+void BasicGLWindow::SLOT_UnloadTexture()
+{
+    m_glWidget->UnloadTexture(0);
+
+    QGraphicsScene *scene = new QGraphicsScene();
+    scene->clear();
+    scene->addText("(Empty)");
+
+    m_ui.qTex1View->resetMatrix();
+    m_ui.qTex1View->setScene(scene);
+    m_ui.qTex1View->show();
+
+    m_filenameTex1.clear();
+}
+
+void BasicGLWindow::SLOT_LoadTexture2()
+{
+    m_filenameTex2 = QFileDialog::getOpenFileName(this, tr("Load Texture"),
+        "./project/textures", tr("*.png;;*.jpg *.jpeg;;*.bmp;;*.gif;;*.pbm *.pgm *.ppm;;*.xbm *.xpm;;All files (*.*)"));
+
+    if (m_filenameTex2.size() != 0) {
+        m_glWidget->LoadTexture(m_filenameTex2, 1);
+
+        QGraphicsScene* texture = new QGraphicsScene();
+        texture->addPixmap(m_filenameTex2);
+        m_ui.qTex2View->setScene(texture);
+        m_ui.qTex2View->fitInView(texture->itemsBoundingRect());
+        m_ui.qTex2View->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+        m_ui.qTex2View->show();
+    }
+}
+
+void BasicGLWindow::SLOT_UnloadTexture2()
+{
+    m_glWidget->UnloadTexture(1);
+
+    QGraphicsScene *scene = new QGraphicsScene();
+    scene->clear();
+    scene->addText("(Empty)");
+
+    m_ui.qTex2View->resetMatrix();
+    m_ui.qTex2View->setScene(scene);
+    m_ui.qTex2View->show();
+
+    m_filenameTex2.clear();
 }
 
 void BasicGLWindow::keyPressEvent(QKeyEvent * event)
@@ -194,19 +226,19 @@ void BasicGLWindow::mouseMoveEvent(QMouseEvent * event)
     int dx = event->x() - m_mouseLastPos.x();
     int dy = event->y() - m_mouseLastPos.y();
     if (event->buttons() & Qt::LeftButton) {
-        if(m_movingCamera)
+        if(m_inputMovement == InputMovement::FPScamera)
             m_glWidget->RotateCamera(QVector3D(-dy, -dx, 0.f));
         else
             m_glWidget->RotateAll(QVector3D(dy, dx, 0.f));
     }
 
     else if (event->buttons() & Qt::RightButton) {
-        if(!m_movingCamera)
+        if(m_inputMovement != InputMovement::FPScamera)
             m_glWidget->RotateAll(QVector3D(dy, 0.f, dx));
     }
     else if (event->buttons() & Qt::MiddleButton)
     {
-        if (m_movingCamera)
+        if (m_inputMovement == InputMovement::FPScamera)
             m_glWidget->TranslateCamera(QVector3D(dx, dy, 0.f));
         else
             m_glWidget->TranslateAll(QVector3D(dx / 4.f, -dy / 4.f, 0.f));
@@ -223,9 +255,9 @@ void BasicGLWindow::wheelEvent(QWheelEvent * event)
     const int degrees = event->delta() / 8;
     if (degrees)
     {
-		if (m_movingCamera)
+		if (m_inputMovement == InputMovement::FPScamera)
 		{
-			m_glWidget->TranslateCamera(m_glWidget->GetCameraForward());
+			m_glWidget->TranslateCamera(m_glWidget->GetCameraForward() * degrees / 10.f);
 		}
 		else
 		{

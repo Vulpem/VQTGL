@@ -6,6 +6,8 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
+#include <qimage.h>
+#include <qopengltexture.h>
 #include <QOpenGLShader>
 #include <QOpenGLShaderProgram>
 #include <QColor>
@@ -15,11 +17,19 @@
 #include <QTime>
 #include <QWheelEvent>
 #include <qtimer.h>
+#include <qstring.h>
+#include <qopenglframebufferobject.h>
 
 #include <memory>
 
 #include "glm\glm.hpp"
 #include "glm\gtc\matrix_transform.hpp"
+
+#include "model.h"
+
+
+typedef std::unique_ptr<QOpenGLTexture> TexturePtr;
+class BasicGLWidget;
 
 struct float3
 {
@@ -33,32 +43,36 @@ struct float2
     float x, y;
 };
 
-struct Vertex
-{
-    Vertex(float3 position, float3 normal = { 0.f,0.f,-1.f }, float2 UVs = { 0.f,0.f }, float3 col = { 1.f,1.f,1.f });
-    float3 pos;
-    float3 norm;
-    float2 UV;
-    float3 color;
-};
-
-class Mesh
+class Mesh : protected QOpenGLFunctions_3_3_Core
 {
 public:
-    Mesh(std::vector<Vertex> vertices, std::vector<uint> indices);
+    Mesh(BasicGLWidget& owner);
     ~Mesh();
 
+	QString m_modelFilename;
     QMatrix4x4 GetTransform();
 	uint GetNIndices() { return m_numIndices; }
+	void Load(QString filename);
+    void LoadTexture(QString filename, int n = -1);
+    void UnloadTexture(int n);
 
     QVector3D m_position;
     QVector3D m_scale;
     QVector3D m_rotation;
 
-    QOpenGLBuffer m_dataBuf;
-    QOpenGLBuffer m_indicesBuf;
+	QOpenGLBuffer m_VBOModelVerts;
+	QOpenGLBuffer m_VBOModelNorms;
+    QOpenGLBuffer m_VBOModelUVs;
+	QOpenGLBuffer m_VBOModelMatAmb;
+	QOpenGLBuffer m_VBOModelMatDiff;
+	QOpenGLBuffer m_VBOModelMatSpec;
+	QOpenGLBuffer m_VBOModelMatShin;
+
+	Model m_model;
+    std::map<int, TexturePtr> m_textures;
 private:
     uint m_numIndices;
+	BasicGLWidget& m_owner;
 };
 
 typedef std::shared_ptr<Mesh> MeshPtr;
@@ -68,16 +82,18 @@ class BasicGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     Q_OBJECT
 
 public:
-    BasicGLWidget(QWidget *parent = 0);
+    BasicGLWidget(QString modelFilename = "", QWidget *parent = 0);
     ~BasicGLWidget();
 
     QSize minimumSizeHint() const override;
     QSize sizeHint() const override;
 
     //Meshes
-    MeshPtr AddMesh(const std::vector<Vertex>& vertices, const std::vector<uint>& indices);
-    MeshPtr AddMesh(MeshPtr mesh);
+	MeshPtr LoadModel(QString modelFilename);
     std::vector<MeshPtr> GetMeshes();
+
+    void LoadTexture(QString filename, int n = -1);
+    void UnloadTexture(int n);
 
     //Scene
     void RotateAll(QVector3D rotationEuler);
@@ -117,6 +133,7 @@ signals:
 
 protected:
     void initializeGL() override;
+	void initFBO();
 	void paintGL() override;
     void resizeGL(int width, int height) override;
 
@@ -150,6 +167,8 @@ private:
     QVector3D m_cameraPosition;
     QVector3D m_cameraRotation;
 
+	QOpenGLFramebufferObject* m_fbo;
+	QString m_modelFilename;
     std::vector<MeshPtr> m_meshes;
 
 	// Scene
@@ -162,7 +181,12 @@ private:
 	// Shaders
     QOpenGLShaderProgram *m_program;
 	GLuint m_transLoc, m_projLoc, m_viewLoc;
-	GLuint m_vertexLoc, m_normalLoc, m_UVLoc, m_colorLoc;
+	GLuint m_vertexLoc, m_normalLoc, m_UVLoc;
+	GLuint m_matAmbLoc, m_matDiffLoc, m_matSpecLoc, m_matShinLoc;
+	GLuint m_lightPosLoc, m_lightColLoc;
+
+    GLuint m_texLoc[2];
+    GLuint m_texLoaded[2];
 
     // FPS
     uint m_FPS;
