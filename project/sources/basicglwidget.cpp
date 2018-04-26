@@ -440,9 +440,9 @@ void BasicGLWidget::loadShaders()
 	QOpenGLShader geom(QOpenGLShader::Geometry, this);
 
 	// Load and compile the shaders
-	vs.compileSourceFile("./project/shaders/basicgl.vert");
-	fs.compileSourceFile("./project/shaders/basicgl.frag");
-	geom.compileSourceFile("./project/shaders/basicgl.geom");
+	vs.compileSourceFile("./project/shaders/BasicGLWindow/sceneRender.vert");
+	fs.compileSourceFile("./project/shaders/BasicGLWindow/sceneRender.frag");
+	geom.compileSourceFile("./project/shaders/BasicGLWindow/sceneRender.geom");
 
 	// Create the program
 	m_program = new QOpenGLShaderProgram;
