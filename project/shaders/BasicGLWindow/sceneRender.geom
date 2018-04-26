@@ -27,10 +27,11 @@ out float matshin;
 void main()
 {
 	mat4 trans = viewTransform * sceneTransform;
+	mat3 normalMatrix = inverse(transpose(mat3 (viewTransform * sceneTransform)));
 
 	for(int n = 0; n < 3; n++)
 	{
-		normal = normalOCS[n];
+		normal = normalize(vec3(normalMatrix * normalOCS[n]));
 		UV = UVOCS[n];
 		matamb = fmatamb[n];
 		matdiff = fmatdiff[n];
