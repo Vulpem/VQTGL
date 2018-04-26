@@ -179,14 +179,24 @@ private:
 	bool m_backFaceCulling = false;
 
 	// Shaders
-    QOpenGLShaderProgram *m_program;
-	GLuint m_transLoc, m_projLoc, m_viewLoc;
-	GLuint m_vertexLoc, m_normalLoc, m_UVLoc;
-	GLuint m_matAmbLoc, m_matDiffLoc, m_matSpecLoc, m_matShinLoc;
-	GLuint m_lightPosLoc, m_lightColLoc;
+	struct Programs
+	{
+		struct SceneRenderProgram
+		{
+			QOpenGLShaderProgram *m_program;
+			GLuint m_transLoc, m_projLoc, m_viewLoc;
+			GLuint m_vertexLoc, m_normalLoc, m_UVLoc;
+			GLuint m_matAmbLoc, m_matDiffLoc, m_matSpecLoc, m_matShinLoc;
+			GLuint m_lightPosLoc, m_lightColLoc;
 
-    GLuint m_texLoc[2];
-    GLuint m_texLoaded[2];
+			GLuint m_texLoc[2];
+			GLuint m_texLoaded[2];
+		} sceneRender;
+		struct PlaneRenderProgram
+		{
+			QOpenGLShaderProgram *m_program;
+		} planeRender;
+	} m_programs;
 
     // FPS
     uint m_FPS;

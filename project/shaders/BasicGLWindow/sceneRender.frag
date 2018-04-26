@@ -93,5 +93,5 @@ void main()
 
 	FragColorRT0 = vec4(Phong(n, L, vertex), 1) * col;
 	FragColorDepth = vec4(gl_FragCoord.z,gl_FragCoord.z,gl_FragCoord.z,1);
-	FragColorNormals = vec4(n, 1);
+	FragColorNormals = vec4(n.x / 2.0 + 0.5f, n.y / 2.0 + 0.5f, n.z / 2.0 + 0.5f, 1);
 }

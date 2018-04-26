@@ -133,7 +133,7 @@ BasicGLWidget::BasicGLWidget(QString modelFilename, QWidget *parent) : QOpenGLWi
 	m_backFaceCulling = false;
 
 	// Shaders
-	m_program = nullptr;
+	m_programs.sceneRender.m_program = nullptr;
 
     //FPS
     m_frameCount = 0;
@@ -283,11 +283,11 @@ void BasicGLWidget::cleanup()
 {
 	makeCurrent();
 	
-	if (m_program == nullptr)
+	if (m_programs.sceneRender.m_program == nullptr)
         return;
     
-	delete m_program;
-    m_program = 0;
+	delete m_programs.sceneRender.m_program;
+	m_programs.sceneRender.m_program = 0;
 }
 
 void BasicGLWidget::initializeGL()
@@ -339,7 +339,7 @@ void BasicGLWidget::paintGL()
         glDisable(GL_CULL_FACE);
 
     //Quad drawing
-    m_program->bind();
+	m_programs.sceneRender.m_program->bind();
 
 	m_fbo->bind();
 	GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT3 };
@@ -355,46 +355,46 @@ void BasicGLWidget::paintGL()
 		if (tex != mesh.m_textures.end())
 		{
 			tex->second->bind(10 + n);
-			glUniform1i(m_texLoc[n], 10 + n);
-			glUniform1i(m_texLoaded[n], 1);
+			glUniform1i(m_programs.sceneRender.m_texLoc[n], 10 + n);
+			glUniform1i(m_programs.sceneRender.m_texLoaded[n], 1);
 		}
 		else
 		{
-			glUniform1i(m_texLoaded[n], 0);
+			glUniform1i(m_programs.sceneRender.m_texLoaded[n], 0);
 		}
 	}
 
-	glUniform3f(m_lightColLoc, 1.f, 1.f, 1.f);
+	glUniform3f(m_programs.sceneRender.m_lightColLoc, 1.f, 1.f, 1.f);
 
     for (auto mesh : m_meshes)
     {
 		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelVerts.bufferId());
-		glVertexAttribPointer(m_vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(m_vertexLoc);
+		glVertexAttribPointer(m_programs.sceneRender.m_vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(m_programs.sceneRender.m_vertexLoc);
 
 		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelNorms.bufferId());
-		glVertexAttribPointer(m_normalLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(m_normalLoc);
+		glVertexAttribPointer(m_programs.sceneRender.m_normalLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(m_programs.sceneRender.m_normalLoc);
 
         glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelUVs.bufferId());
-        glVertexAttribPointer(m_UVLoc, 2, GL_FLOAT, GL_FALSE, 0, 0);
-        glEnableVertexAttribArray(m_UVLoc);
+        glVertexAttribPointer(m_programs.sceneRender.m_UVLoc, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(m_programs.sceneRender.m_UVLoc);
 
 		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatAmb.bufferId());
-		glVertexAttribPointer(m_matAmbLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(m_matAmbLoc);
+		glVertexAttribPointer(m_programs.sceneRender.m_matAmbLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(m_programs.sceneRender.m_matAmbLoc);
 
 		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatDiff.bufferId());
-		glVertexAttribPointer(m_matDiffLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(m_matDiffLoc);
+		glVertexAttribPointer(m_programs.sceneRender.m_matDiffLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(m_programs.sceneRender.m_matDiffLoc);
 
 		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatSpec.bufferId());
-		glVertexAttribPointer(m_matSpecLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(m_matSpecLoc);
+		glVertexAttribPointer(m_programs.sceneRender.m_matSpecLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(m_programs.sceneRender.m_matSpecLoc);
 
 		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatShin.bufferId());
-		glVertexAttribPointer(m_matShinLoc, 1, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(m_matShinLoc);
+		glVertexAttribPointer(m_programs.sceneRender.m_matShinLoc, 1, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(m_programs.sceneRender.m_matShinLoc);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -406,7 +406,7 @@ void BasicGLWidget::paintGL()
 
 	m_fbo->bindDefault();	
 
-    m_program->release();
+	m_programs.sceneRender.m_program->release();
 }
 
 void BasicGLWidget::resizeGL(int w, int h)
@@ -445,72 +445,72 @@ void BasicGLWidget::loadShaders()
 	geom.compileSourceFile("./project/shaders/BasicGLWindow/sceneRender.geom");
 
 	// Create the program
-	m_program = new QOpenGLShaderProgram;
+	m_programs.sceneRender.m_program = new QOpenGLShaderProgram;
 
 	// Add the shaders
-	m_program->addShader(&fs);
-	m_program->addShader(&vs);
-	m_program->addShader(&geom);
+	m_programs.sceneRender.m_program->addShader(&fs);
+	m_programs.sceneRender.m_program->addShader(&vs);
+	m_programs.sceneRender.m_program->addShader(&geom);
 
 	// Link the program
-	m_program->link();
+	m_programs.sceneRender.m_program->link();
 
 	// Bind the program (we are gonna use this program)
-	m_program->bind();
+	m_programs.sceneRender.m_program->bind();
 
 	// Get the attribs locations of the vertex shader
-	m_vertexLoc = m_program->attributeLocation("vertex");
-	m_normalLoc = m_program->attributeLocation("normal");
-	m_UVLoc = m_program->attributeLocation("UV");
+	m_programs.sceneRender.m_vertexLoc = m_programs.sceneRender.m_program->attributeLocation("vertex");
+	m_programs.sceneRender.m_normalLoc = m_programs.sceneRender.m_program->attributeLocation("normal");
+	m_programs.sceneRender.m_UVLoc = m_programs.sceneRender.m_program->attributeLocation("UV");
 
-	m_matAmbLoc = m_program->attributeLocation("matamb");
-    m_matDiffLoc = m_program->attributeLocation("matdiff");
-	m_matSpecLoc = m_program->attributeLocation("matspec");
-	m_matShinLoc = m_program->attributeLocation("matshin");
+	m_programs.sceneRender.m_matAmbLoc = m_programs.sceneRender.m_program->attributeLocation("matamb");
+    m_programs.sceneRender.m_matDiffLoc = m_programs.sceneRender.m_program->attributeLocation("matdiff");
+	m_programs.sceneRender.m_matSpecLoc = m_programs.sceneRender.m_program->attributeLocation("matspec");
+	m_programs.sceneRender.m_matShinLoc = m_programs.sceneRender.m_program->attributeLocation("matshin");
 
 	std::cout << "	Attribute locations \n";
-	std::cout << "		vertex:		" << m_vertexLoc << "\n";
-	std::cout << "		normal:		" << m_normalLoc << "\n";
-	std::cout << "		UVs:		" << m_UVLoc << "\n";
-	std::cout << "		ambient: 	" << m_matAmbLoc << "\n";
-	std::cout << "		diffuse:	" << m_matDiffLoc << "\n";
-	std::cout << "		specular:	" << m_matSpecLoc << "\n";
-	std::cout << "		shinyness:	" << m_matShinLoc << "\n";
+	std::cout << "		vertex:		" << m_programs.sceneRender.m_vertexLoc << "\n";
+	std::cout << "		normal:		" << m_programs.sceneRender.m_normalLoc << "\n";
+	std::cout << "		UVs:		" << m_programs.sceneRender.m_UVLoc << "\n";
+	std::cout << "		ambient: 	" << m_programs.sceneRender.m_matAmbLoc << "\n";
+	std::cout << "		diffuse:	" << m_programs.sceneRender.m_matDiffLoc << "\n";
+	std::cout << "		specular:	" << m_programs.sceneRender.m_matSpecLoc << "\n";
+	std::cout << "		shinyness:	" << m_programs.sceneRender.m_matShinLoc << "\n";
 
 	// Get the uniforms locations of the vertex shader
-	m_projLoc = m_program->uniformLocation("projTransform");
-	m_viewLoc = m_program->uniformLocation("viewTransform");
-	m_transLoc = m_program->uniformLocation("sceneTransform");
+	m_programs.sceneRender.m_projLoc = m_programs.sceneRender.m_program->uniformLocation("projTransform");
+	m_programs.sceneRender.m_viewLoc = m_programs.sceneRender.m_program->uniformLocation("viewTransform");
+	m_programs.sceneRender.m_transLoc = m_programs.sceneRender.m_program->uniformLocation("sceneTransform");
 
-	m_lightPosLoc = m_program->uniformLocation("lightPos");
-	m_lightColLoc = m_program->uniformLocation("lightCol");
+	m_programs.sceneRender.m_lightPosLoc = m_programs.sceneRender.m_program->uniformLocation("lightPos");
+	m_programs.sceneRender.m_lightColLoc = m_programs.sceneRender.m_program->uniformLocation("lightCol");
 
-    m_texLoc[0] = m_program->uniformLocation("tex1Texture");
-	m_texLoc[1] = m_program->uniformLocation("tex2Texture");
-    m_texLoaded[0] = m_program->uniformLocation("tex1Loaded");
-	m_texLoaded[1] = m_program->uniformLocation("tex2Loaded");
+    m_programs.sceneRender.m_texLoc[0] = m_programs.sceneRender.m_program->uniformLocation("tex1Texture");
+	m_programs.sceneRender.m_texLoc[1] = m_programs.sceneRender.m_program->uniformLocation("tex2Texture");
+    m_programs.sceneRender.m_texLoaded[0] = m_programs.sceneRender.m_program->uniformLocation("tex1Loaded");
+	m_programs.sceneRender.m_texLoaded[1] = m_programs.sceneRender.m_program->uniformLocation("tex2Loaded");
 
 	std::cout << "	Uniform locations \n";
-	std::cout << "		projection transform:   " << m_projLoc << "\n";
-	std::cout << "		view transform:         " << m_viewLoc << "\n";
-	std::cout << "		scene transform:        " << m_transLoc << "\n";
-	std::cout << "		light position:         " << m_lightPosLoc << "\n";
-	std::cout << "		light color:            " << m_lightColLoc << "\n";
-	std::cout << "		texture 1:              " << m_texLoc[0] << "\n";
-	std::cout << "		texture 2:              " << m_texLoc[1] << "\n";
-	std::cout << "		is texture 1 loaded:    " << m_texLoaded[0] << "\n";
-	std::cout << "		is texture 2 loaded:    " << m_texLoaded[1] << "\n";
+	std::cout << "		projection transform:   " << m_programs.sceneRender.m_projLoc << "\n";
+	std::cout << "		view transform:         " << m_programs.sceneRender.m_viewLoc << "\n";
+	std::cout << "		scene transform:        " << m_programs.sceneRender.m_transLoc << "\n";
+	std::cout << "		light position:         " << m_programs.sceneRender.m_lightPosLoc << "\n";
+	std::cout << "		light color:            " << m_programs.sceneRender.m_lightColLoc << "\n";
+	std::cout << "		texture 1:              " << m_programs.sceneRender.m_texLoc[0] << "\n";
+	std::cout << "		texture 2:              " << m_programs.sceneRender.m_texLoc[1] << "\n";
+	std::cout << "		is texture 1 loaded:    " << m_programs.sceneRender.m_texLoaded[0] << "\n";
+	std::cout << "		is texture 2 loaded:    " << m_programs.sceneRender.m_texLoaded[1] << "\n";
 
-	m_program->release();
+	m_programs.sceneRender.m_program->release();
 }
 
 void BasicGLWidget::reloadShaders()
 {
-	if (m_program == nullptr)
+	if (m_programs.sceneRender.m_program == nullptr)
 		return;
 	makeCurrent();
-	delete m_program;
-	m_program = 0;
+	delete m_programs.sceneRender.m_program;
+	m_programs.sceneRender.m_program = 0;
 	loadShaders();
 	update();
 }
@@ -524,22 +524,22 @@ void BasicGLWidget::projectionTransform()
 {
 	makeCurrent();
 
-    m_program->bind();
+	m_programs.sceneRender.m_program->bind();
 
 	// Set the camera type
 	QMatrix4x4 proj;
 	proj.setToIdentity();
 	
 	// TO DO: Set the camera parameters 
-	m_zNear = 0.02f;
-	m_zFar = 1000.f;
+	m_zNear = 0.01f;
+	m_zFar = 100.f;
 
-	proj.perspective(45.0f, GLfloat(m_width) / m_height, 0.01f, 100.0f);
+	proj.perspective(45.0f, GLfloat(m_width) / m_height, m_zNear, m_zFar);
 
 	// Send the matrix to the shader
-	m_program->setUniformValue(m_projLoc, proj);
+	m_programs.sceneRender.m_program->setUniformValue(m_programs.sceneRender.m_projLoc, proj);
 
-    m_program->release();
+	m_programs.sceneRender.m_program->release();
 }
 
 void BasicGLWidget::ResetCamera()
@@ -551,12 +551,12 @@ void BasicGLWidget::ResetCamera()
 void BasicGLWidget::viewTransform()
 {
 	makeCurrent();
-    m_program->bind();
+	m_programs.sceneRender.m_program->bind();
 
 	// Send the matrix to the shader
-	m_program->setUniformValue(m_viewLoc, GetViewMatrix());
+	m_programs.sceneRender.m_program->setUniformValue(m_programs.sceneRender.m_viewLoc, GetViewMatrix());
 
-    m_program->release();
+	m_programs.sceneRender.m_program->release();
 }
 
 QMatrix4x4 BasicGLWidget::GetViewMatrix()
@@ -584,7 +584,7 @@ void BasicGLWidget::meshTransform(MeshPtr mesh)
 {
 	makeCurrent();
 	// Send the matrix to the shader
-	m_program->setUniformValue(m_transLoc, mesh->GetTransform());
+	m_programs.sceneRender.m_program->setUniformValue(m_programs.sceneRender.m_transLoc, mesh->GetTransform());
 }
 
 void BasicGLWidget::computeFps()
