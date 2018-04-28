@@ -116,15 +116,19 @@ void Mesh::UnloadTexture(int n)
 
 
 
-BasicGLWidget::BasicGLWidget(QString modelFilename, QWidget *parent) : QOpenGLWidget(parent)
+BasicGLWidget::BasicGLWidget(QString modelFilename, QWidget *parent)
+    : QOpenGLWidget(parent)
+    , m_fbo(nullptr)
 {
 	// To receive key events
 	setFocusPolicy(Qt::StrongFocus);
 
 	// Attributes initialization
 	// Screen
-	m_width = 500;
-	m_height = 500;
+	m_width = width();
+	m_height = height();
+
+    
 	
 	// Scene
 	m_sceneCenter = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -317,15 +321,25 @@ void BasicGLWidget::initFBO()
 {
 	makeCurrent();
 
-	QOpenGLFramebufferObjectFormat format;
-	format.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
+    if (m_fbo != nullptr)
+    {
+        delete m_fbo;
+        m_fbo = nullptr;
+    }
 
-	m_fbo = new QOpenGLFramebufferObject(m_width, m_height, format);
-	m_fbo->addColorAttachment(m_width, m_height);
+    QOpenGLFramebufferObjectFormat format;
+    format.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
+
+    m_fbo = new QOpenGLFramebufferObject(m_width, m_height, format);
+    m_fbo->addColorAttachment(m_width, m_height);
+    m_fbo->addColorAttachment(m_width, m_height);
+
 }
 
 void BasicGLWidget::paintGL()
 {
+    initFBO();
+
     // FPS computation
     computeFps();
 
@@ -342,11 +356,8 @@ void BasicGLWidget::paintGL()
 	m_programs.sceneRender.m_program->bind();
 
 	m_fbo->bind();
-	GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT3 };
+	GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 	glDrawBuffers(3, bufs);
-
-	//TODO remove
-	m_fbo->bindDefault();
 
     const Mesh& mesh = *m_meshes.front();
 	for (int n = 0; n < 2; n++)
@@ -402,6 +413,8 @@ void BasicGLWidget::paintGL()
         meshTransform(mesh);
 
 		glDrawArrays(GL_TRIANGLES, 0, mesh->m_model.faces().size() *3);
+
+        m_fbo->toImage().save("FBOTest.png");
     }
 
 	m_fbo->bindDefault();	
