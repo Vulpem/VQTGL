@@ -332,8 +332,7 @@ void Model::parseVTN(stringstream & ss, string & block) {
   cout << "Entering parseVTN(..., \""<< block << "\")" << endl;
 #endif
   if (!fvtn) {
-    cerr << "vtn node found: Texture coords not supported yet. Ignoring texture part..." << endl;
-    fvtn = true;
+      fvtn = true;
   }
   Face f;
   stringstream ssb;

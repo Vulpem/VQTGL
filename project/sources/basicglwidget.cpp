@@ -333,31 +333,28 @@ void BasicGLWidget::initFBO()
     m_fbo = new QOpenGLFramebufferObject(m_width, m_height, format);
     m_fbo->addColorAttachment(m_width, m_height);
     m_fbo->addColorAttachment(m_width, m_height);
-
 }
 
 void BasicGLWidget::paintGL()
 {
-    initFBO();
-
     // FPS computation
     computeFps();
 
-    // Paint the scene
+	m_programs.sceneRender.m_program->bind();
+    
     glClearColor(m_bgColor.red() / 255.0f, m_bgColor.green() / 255.0f, m_bgColor.blue() / 255.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
+
     if (m_backFaceCulling)
         glEnable(GL_CULL_FACE);
     else
         glDisable(GL_CULL_FACE);
 
-    //Quad drawing
-	m_programs.sceneRender.m_program->bind();
-
-	m_fbo->bind();
-	GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-	glDrawBuffers(3, bufs);
+    m_fbo->bind();
+    GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+    glDrawBuffers(3, bufs);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     const Mesh& mesh = *m_meshes.front();
 	for (int n = 0; n < 2; n++)
@@ -413,11 +410,13 @@ void BasicGLWidget::paintGL()
         meshTransform(mesh);
 
 		glDrawArrays(GL_TRIANGLES, 0, mesh->m_model.faces().size() *3);
-
-        m_fbo->toImage().save("FBOTest.png");
     }
 
-	m_fbo->bindDefault();	
+    m_fbo->release();
+
+    //m_fbo->toImage(false, 1).save("FBO1.png");
+    //m_fbo->toImage(false, 2).save("FBO2.png");
+    //m_fbo->toImage(false, 0).save("FBO0.png");
 
 	m_programs.sceneRender.m_program->release();
 }
@@ -440,6 +439,8 @@ void BasicGLWidget::resizeGL(int w, int h)
 
 	// After modifying the parameters, we update the camera projection
 	projectionTransform();
+
+    initFBO();
 }
 
 void BasicGLWidget::loadShaders()
@@ -603,7 +604,6 @@ void BasicGLWidget::computeBBoxScene()
 
 void BasicGLWidget::meshTransform(MeshPtr mesh)
 {
-	makeCurrent();
 	// Send the matrix to the shader
 	m_programs.sceneRender.m_program->setUniformValue(m_programs.sceneRender.m_transLoc, mesh->GetTransform());
 }
