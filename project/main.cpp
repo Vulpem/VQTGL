@@ -58,6 +58,8 @@
 #include "glwidget.h"
 #include "mainwindow.h"
 
+#pragma comment (lib, "opengl32.lib");
+
 int main(int argc, char *argv[])
 {
 	QApplication app(argc, argv);
