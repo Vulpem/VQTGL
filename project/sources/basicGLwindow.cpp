@@ -1,4 +1,3 @@
-#include "../headers/basicglwidget.h"
 #include "../headers/basicGLwindow.h"
 
 #include <qlayout.h>
@@ -13,10 +12,12 @@
 BasicGLWindow::BasicGLWindow(QString name)
     : BasicWindow(name)
     , m_inputMovement(InputMovement::FPScamera)
+    , m_whatToDraw(BasicGLWidget::WhatToDraw::finalImage)
 {
     m_ui.setupUi(this);
 
     m_glWidget = new BasicGLWidget("./project/models/mech.OBJ");
+    m_glWidget->m_whatToDraw = m_whatToDraw;
 
 	m_glWidgetContainer = new QVBoxLayout(m_ui.qGLFrame);
 	m_glWidgetContainer->setMargin(0);
@@ -39,6 +40,8 @@ BasicGLWindow::BasicGLWindow(QString name)
 
 	connect(m_ui.qLoadModelButton, &QPushButton::clicked, this, &BasicGLWindow::SLOT_LoadModel);
 	connect(m_ui.MoveControlsComboBox, &QComboBox::currentTextChanged, this, &BasicGLWindow::SLOT_ChangedInputMovement);
+    connect(m_ui.WhatToRender, &QComboBox::currentTextChanged, this, &BasicGLWindow::SLOT_ChangedWhatToDraw);
+
 
 	connect(m_glWidget, &BasicGLWidget::UpdatedFPS, this, &BasicGLWindow::SLOT_UpdateFPS);
 
@@ -70,6 +73,32 @@ void BasicGLWindow::SLOT_ChangedInputMovement(QString val)
 	}
 }
 
+void BasicGLWindow::SLOT_ChangedWhatToDraw(QString val)
+{
+    if (val == "Final Image")
+    {
+        m_whatToDraw = BasicGLWidget::WhatToDraw::finalImage;
+    }
+    else if (val == "Simple render")
+    {
+        m_whatToDraw = BasicGLWidget::WhatToDraw::simpleRender;
+    }
+    else if (val == "Depth")
+    {
+        m_whatToDraw = BasicGLWidget::WhatToDraw::depth;
+    }
+    else if (val == "Normals")
+    {
+        m_whatToDraw = BasicGLWidget::WhatToDraw::normals;
+    }
+    else if (val == "Ambient Occlusion")
+    {
+        m_whatToDraw = BasicGLWidget::WhatToDraw::ambientOcclusion;
+    }
+    m_glWidget->m_whatToDraw = m_whatToDraw;
+    m_glWidget->update();
+}
+
 void BasicGLWindow::SLOT_UpdateFPS(float FPS)
 {
     //m_fpsLabel->setText(QString::number(FPS));
@@ -89,6 +118,7 @@ void BasicGLWindow::SLOT_LoadModel()
 		}
 
 		m_glWidget = new BasicGLWidget(filename);
+        m_glWidget->m_whatToDraw = m_whatToDraw;
 		m_glWidgetContainer->addWidget(m_glWidget);
 		m_glWidget->show();
 	}

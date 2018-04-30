@@ -82,6 +82,15 @@ class BasicGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     Q_OBJECT
 
 public:
+    enum class WhatToDraw
+    {
+        finalImage = 0,
+        simpleRender = 1,
+        depth = 2,
+        normals = 3,
+        ambientOcclusion = 4
+    };
+
     BasicGLWidget(QString modelFilename = "", QWidget *parent = 0);
     ~BasicGLWidget();
 
@@ -124,6 +133,8 @@ public:
 
     //FPS
     float GetFPS();
+
+    WhatToDraw m_whatToDraw;
 
 public slots:
     void cleanup();
@@ -202,6 +213,7 @@ private:
             GLuint m_diffuseTexLoc;
             GLuint m_depthTexLoc;
             GLuint m_normalsTexLoc;
+            GLuint m_whatToDrawLoc;
 			QOpenGLShaderProgram *m_program;
 		} planeRender;
 	} m_programs;

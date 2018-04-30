@@ -471,6 +471,8 @@ void BasicGLWidget::PaintToScreen()
     glBindTexture(GL_TEXTURE_2D, textures[2]);
     glUniform1i(m_programs.planeRender.m_normalsTexLoc, 2);
 
+    glUniform1i(m_programs.planeRender.m_whatToDrawLoc, static_cast<int>(m_whatToDraw));
+
     glBindBuffer(GL_ARRAY_BUFFER, m_planeVertices.bufferId());
     glVertexAttribPointer(m_programs.planeRender.m_vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(m_programs.planeRender.m_vertexLoc);
@@ -623,11 +625,14 @@ void BasicGLWidget::loadShaders()
         m_programs.planeRender.m_diffuseTexLoc = m_programs.planeRender.m_program->uniformLocation("diffuseTex");
         m_programs.planeRender.m_depthTexLoc = m_programs.planeRender.m_program->uniformLocation("depthTex");
         m_programs.planeRender.m_normalsTexLoc = m_programs.planeRender.m_program->uniformLocation("normalsTex");
+        m_programs.planeRender.m_whatToDrawLoc = m_programs.planeRender.m_program->uniformLocation("whatToDraw");
+
 
         std::cout << "	Uniform locations \n";
         std::cout << "		Diffuse texture:   " << m_programs.planeRender.m_diffuseTexLoc << "\n";
         std::cout << "		Depth texture         " << m_programs.planeRender.m_depthTexLoc << "\n";
         std::cout << "		Normals texture:        " << m_programs.planeRender.m_normalsTexLoc << "\n";
+        std::cout << "		What to draw:        " << m_programs.planeRender.m_whatToDrawLoc << "\n";
 
         m_programs.planeRender.m_program->release();
     }

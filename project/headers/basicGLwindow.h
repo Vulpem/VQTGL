@@ -3,6 +3,7 @@
 
 #include "basicwindow.h"
 #include "ui_BasicGLWindow.h"
+#include "basicglwidget.h"
 
 class MainWindow;
 class BasicGLWidget;
@@ -25,6 +26,7 @@ public:
 
 public slots:
 void SLOT_ChangedInputMovement(QString val);
+void SLOT_ChangedWhatToDraw(QString val);
 void SLOT_UpdateFPS(float FPS);
 void SLOT_LoadModel();
 void SLOT_LoadTexture();
@@ -52,5 +54,7 @@ protected:
     //Input
     QPoint m_mouseLastPos;
 	InputMovement m_inputMovement;
+
+    BasicGLWidget::WhatToDraw m_whatToDraw;
 };
 #endif
