@@ -16,6 +16,17 @@ uniform sampler2D normalsTex;
 
 layout (location = 0) out vec4 FragColor;
 
+float CalculateSSAO()
+{
+     vec4 rawNormal = texture2D(normalsTex, UVs);
+     vec4 rawDepth = texture2D(depthTex, UVs);
+
+     vec3 normal = vec3(rawNormal.x * 2.f - 1.f, rawNormal.y * 2.f - 1.f, rawNormal.z * 2.f - 1.f);
+     float depth = rawDepth.x;
+
+     return 1.f;
+}
+
 void main()
 {
     if(whatToDraw == r_simpleRender)
@@ -32,16 +43,7 @@ void main()
     }
     else
     {
-        vec4 rawNormal = texture2D(normalsTex, UVs);
-        vec4 rawDepth = texture2D(depthTex, UVs);
-
-        vec3 normal = vec3(rawNormal.x * 2.f - 1.f, rawNormal.y * 2.f - 1.f, rawNormal.z * 2.f - 1.f);
-        float depth = rawDepth.x;
-
-        float SSAO = 1.f;
-
-
-
+        float SSAO = CalculateSSAO();
 
         if(whatToDraw == r_finalImage)
         {
