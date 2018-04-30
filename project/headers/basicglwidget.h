@@ -138,6 +138,9 @@ protected:
     void resizeGL(int width, int height) override;
 
 private:
+    void PaintToFBO();
+    void PaintToScreen();
+
     // Shaders
 	void loadShaders();
 
@@ -195,9 +198,16 @@ private:
 		} sceneRender;
 		struct PlaneRenderProgram
 		{
+            GLuint m_vertexLoc, m_UVLoc;
+            GLuint m_diffuseTexLoc;
+            GLuint m_depthTexLoc;
+            GLuint m_normalsTexLoc;
 			QOpenGLShaderProgram *m_program;
 		} planeRender;
 	} m_programs;
+
+    QOpenGLBuffer m_planeVertices;
+    QOpenGLBuffer m_planeUVs;
 
     // FPS
     uint m_FPS;

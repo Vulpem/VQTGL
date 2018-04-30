@@ -12,8 +12,8 @@ HEADERS       = project/headers/glwidget.h \
                 project/headers/phongglwidget.h \
                 project/headers/phongwindow.h \
                 project/headers/definitions.h \
-		project/headers/texturingglwidget.h \
-		project/headers/texturingwindow.h
+		        project/headers/texturingglwidget.h \
+		        project/headers/texturingwindow.h
 
 SOURCES       = project/main.cpp \
                 project/sources/glwidget.cpp \
@@ -31,9 +31,9 @@ SOURCES       = project/main.cpp \
                 project/sources/texturingwindow.cpp
 
 FORMS         = project/forms/basicwindow.ui \
-	        project/forms/phongwindow.ui \
-		project/forms/texturingwindow.ui \
-		project/forms/BasicGLWindow.ui
+	            project/forms/phongwindow.ui \
+		        project/forms/texturingwindow.ui \
+		        project/forms/BasicGLWindow.ui
 
 QT           += widgets
 QT           += opengl
@@ -48,3 +48,4 @@ INCLUDEPATH  += ./project \
 # install
 target.path = $$[QT_INSTALL_EXAMPLES]/opengl/VQTGL
 INSTALLS += target
+

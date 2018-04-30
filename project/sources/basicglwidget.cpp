@@ -333,6 +333,28 @@ void BasicGLWidget::initFBO()
     m_fbo = new QOpenGLFramebufferObject(m_width, m_height, format);
     m_fbo->addColorAttachment(m_width, m_height);
     m_fbo->addColorAttachment(m_width, m_height);
+
+    float vertices[] = {
+        -1.f, 1.f, 0.f,
+        -1.f, -1.f, 0.f,
+        1.f, 1.f, 0.f,
+        1.f, -1.f, 0.f,
+    };
+
+    float UVs[] = {
+        0.f, 1.f,
+        0.f, 0.f,
+        1.f, 1.f,
+        1.f, 0.f
+    };
+
+    m_planeVertices.create();
+    m_planeVertices.bind();
+    m_planeVertices.allocate(vertices, sizeof(float) * 12);
+
+    m_planeUVs.create();
+    m_planeUVs.bind();
+    m_planeUVs.allocate(UVs, sizeof(float) * 8);
 }
 
 void BasicGLWidget::paintGL()
@@ -340,10 +362,15 @@ void BasicGLWidget::paintGL()
     // FPS computation
     computeFps();
 
-	m_programs.sceneRender.m_program->bind();
-    
+    PaintToFBO();
+    PaintToScreen();	
+}
+
+void BasicGLWidget::PaintToFBO()
+{
+    m_programs.sceneRender.m_program->bind();
+
     glClearColor(m_bgColor.red() / 255.0f, m_bgColor.green() / 255.0f, m_bgColor.blue() / 255.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
     if (m_backFaceCulling)
@@ -357,68 +384,104 @@ void BasicGLWidget::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     const Mesh& mesh = *m_meshes.front();
-	for (int n = 0; n < 2; n++)
-	{
-		auto tex = mesh.m_textures.find(n);
-		if (tex != mesh.m_textures.end())
-		{
-			tex->second->bind(10 + n);
-			glUniform1i(m_programs.sceneRender.m_texLoc[n], 10 + n);
-			glUniform1i(m_programs.sceneRender.m_texLoaded[n], 1);
-		}
-		else
-		{
-			glUniform1i(m_programs.sceneRender.m_texLoaded[n], 0);
-		}
-	}
+    for (int n = 0; n < 2; n++)
+    {
+        auto tex = mesh.m_textures.find(n);
+        if (tex != mesh.m_textures.end())
+        {
+            tex->second->bind(10 + n);
+            glUniform1i(m_programs.sceneRender.m_texLoc[n], 10 + n);
+            glUniform1i(m_programs.sceneRender.m_texLoaded[n], 1);
+        }
+        else
+        {
+            glUniform1i(m_programs.sceneRender.m_texLoaded[n], 0);
+        }
+    }
 
-	glUniform3f(m_programs.sceneRender.m_lightColLoc, 1.f, 1.f, 1.f);
+    glUniform3f(m_programs.sceneRender.m_lightColLoc, 1.f, 1.f, 1.f);
 
     for (auto mesh : m_meshes)
     {
-		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelVerts.bufferId());
-		glVertexAttribPointer(m_programs.sceneRender.m_vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(m_programs.sceneRender.m_vertexLoc);
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelVerts.bufferId());
+        glVertexAttribPointer(m_programs.sceneRender.m_vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(m_programs.sceneRender.m_vertexLoc);
 
-		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelNorms.bufferId());
-		glVertexAttribPointer(m_programs.sceneRender.m_normalLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(m_programs.sceneRender.m_normalLoc);
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelNorms.bufferId());
+        glVertexAttribPointer(m_programs.sceneRender.m_normalLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(m_programs.sceneRender.m_normalLoc);
 
         glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelUVs.bufferId());
         glVertexAttribPointer(m_programs.sceneRender.m_UVLoc, 2, GL_FLOAT, GL_FALSE, 0, 0);
         glEnableVertexAttribArray(m_programs.sceneRender.m_UVLoc);
 
-		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatAmb.bufferId());
-		glVertexAttribPointer(m_programs.sceneRender.m_matAmbLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(m_programs.sceneRender.m_matAmbLoc);
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatAmb.bufferId());
+        glVertexAttribPointer(m_programs.sceneRender.m_matAmbLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(m_programs.sceneRender.m_matAmbLoc);
 
-		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatDiff.bufferId());
-		glVertexAttribPointer(m_programs.sceneRender.m_matDiffLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(m_programs.sceneRender.m_matDiffLoc);
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatDiff.bufferId());
+        glVertexAttribPointer(m_programs.sceneRender.m_matDiffLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(m_programs.sceneRender.m_matDiffLoc);
 
-		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatSpec.bufferId());
-		glVertexAttribPointer(m_programs.sceneRender.m_matSpecLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(m_programs.sceneRender.m_matSpecLoc);
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatSpec.bufferId());
+        glVertexAttribPointer(m_programs.sceneRender.m_matSpecLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(m_programs.sceneRender.m_matSpecLoc);
 
-		glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatShin.bufferId());
-		glVertexAttribPointer(m_programs.sceneRender.m_matShinLoc, 1, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(m_programs.sceneRender.m_matShinLoc);
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->m_VBOModelMatShin.bufferId());
+        glVertexAttribPointer(m_programs.sceneRender.m_matShinLoc, 1, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(m_programs.sceneRender.m_matShinLoc);
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         // Apply the geometric transforms to the scene (position/orientation)
         meshTransform(mesh);
 
-		glDrawArrays(GL_TRIANGLES, 0, mesh->m_model.faces().size() *3);
+        glDrawArrays(GL_TRIANGLES, 0, mesh->m_model.faces().size() * 3);
     }
 
-    m_fbo->release();
+    m_fbo->bindDefault();
 
+    //m_fbo->toImage(false, 0).save("FBO0.png");
     //m_fbo->toImage(false, 1).save("FBO1.png");
     //m_fbo->toImage(false, 2).save("FBO2.png");
-    //m_fbo->toImage(false, 0).save("FBO0.png");
 
-	m_programs.sceneRender.m_program->release();
+    m_programs.sceneRender.m_program->release();
+}
+
+void BasicGLWidget::PaintToScreen()
+{
+    makeCurrent();
+
+    m_programs.planeRender.m_program->bind();
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+
+    const QVector<GLuint> textures = m_fbo->textures();
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textures[0]);
+    glUniform1i(m_programs.planeRender.m_diffuseTexLoc, 0);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, textures[1]);
+    glUniform1i(m_programs.planeRender.m_depthTexLoc, 1);
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, textures[2]);
+    glUniform1i(m_programs.planeRender.m_normalsTexLoc, 2);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_planeVertices.bufferId());
+    glVertexAttribPointer(m_programs.planeRender.m_vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(m_programs.planeRender.m_vertexLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_planeUVs.bufferId());
+    glVertexAttribPointer(m_programs.planeRender.m_UVLoc, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(m_programs.planeRender.m_UVLoc);
+
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    m_programs.planeRender.m_program->release();
 }
 
 void BasicGLWidget::resizeGL(int w, int h)
@@ -447,80 +510,127 @@ void BasicGLWidget::loadShaders()
 {
 	makeCurrent();
 	std::cout << "Loading Shaders: \n";
+    {
+        // Declaration of the shaders
+        QOpenGLShader vs(QOpenGLShader::Vertex, this);
+        QOpenGLShader fs(QOpenGLShader::Fragment, this);
+        QOpenGLShader geom(QOpenGLShader::Geometry, this);
 
-	// Declaration of the shaders
-	QOpenGLShader vs(QOpenGLShader::Vertex, this);
-	QOpenGLShader fs(QOpenGLShader::Fragment, this);
-	QOpenGLShader geom(QOpenGLShader::Geometry, this);
+        // Load and compile the shaders
+        vs.compileSourceFile("./project/shaders/BasicGLWindow/sceneRender.vert");
+        fs.compileSourceFile("./project/shaders/BasicGLWindow/sceneRender.frag");
+        geom.compileSourceFile("./project/shaders/BasicGLWindow/sceneRender.geom");
 
-	// Load and compile the shaders
-	vs.compileSourceFile("./project/shaders/BasicGLWindow/sceneRender.vert");
-	fs.compileSourceFile("./project/shaders/BasicGLWindow/sceneRender.frag");
-	geom.compileSourceFile("./project/shaders/BasicGLWindow/sceneRender.geom");
+        // Create the program
+        m_programs.sceneRender.m_program = new QOpenGLShaderProgram;
 
-	// Create the program
-	m_programs.sceneRender.m_program = new QOpenGLShaderProgram;
+        // Add the shaders
+        m_programs.sceneRender.m_program->addShader(&fs);
+        m_programs.sceneRender.m_program->addShader(&vs);
+        m_programs.sceneRender.m_program->addShader(&geom);
 
-	// Add the shaders
-	m_programs.sceneRender.m_program->addShader(&fs);
-	m_programs.sceneRender.m_program->addShader(&vs);
-	m_programs.sceneRender.m_program->addShader(&geom);
+        // Link the program
+        m_programs.sceneRender.m_program->link();
 
-	// Link the program
-	m_programs.sceneRender.m_program->link();
+        // Bind the program (we are gonna use this program)
+        m_programs.sceneRender.m_program->bind();
 
-	// Bind the program (we are gonna use this program)
-	m_programs.sceneRender.m_program->bind();
+        // Get the attribs locations of the vertex shader
+        m_programs.sceneRender.m_vertexLoc = m_programs.sceneRender.m_program->attributeLocation("vertex");
+        m_programs.sceneRender.m_normalLoc = m_programs.sceneRender.m_program->attributeLocation("normal");
+        m_programs.sceneRender.m_UVLoc = m_programs.sceneRender.m_program->attributeLocation("UV");
 
-	// Get the attribs locations of the vertex shader
-	m_programs.sceneRender.m_vertexLoc = m_programs.sceneRender.m_program->attributeLocation("vertex");
-	m_programs.sceneRender.m_normalLoc = m_programs.sceneRender.m_program->attributeLocation("normal");
-	m_programs.sceneRender.m_UVLoc = m_programs.sceneRender.m_program->attributeLocation("UV");
+        m_programs.sceneRender.m_matAmbLoc = m_programs.sceneRender.m_program->attributeLocation("matamb");
+        m_programs.sceneRender.m_matDiffLoc = m_programs.sceneRender.m_program->attributeLocation("matdiff");
+        m_programs.sceneRender.m_matSpecLoc = m_programs.sceneRender.m_program->attributeLocation("matspec");
+        m_programs.sceneRender.m_matShinLoc = m_programs.sceneRender.m_program->attributeLocation("matshin");
 
-	m_programs.sceneRender.m_matAmbLoc = m_programs.sceneRender.m_program->attributeLocation("matamb");
-    m_programs.sceneRender.m_matDiffLoc = m_programs.sceneRender.m_program->attributeLocation("matdiff");
-	m_programs.sceneRender.m_matSpecLoc = m_programs.sceneRender.m_program->attributeLocation("matspec");
-	m_programs.sceneRender.m_matShinLoc = m_programs.sceneRender.m_program->attributeLocation("matshin");
+        std::cout << "	Attribute locations \n";
+        std::cout << "		vertex:		" << m_programs.sceneRender.m_vertexLoc << "\n";
+        std::cout << "		normal:		" << m_programs.sceneRender.m_normalLoc << "\n";
+        std::cout << "		UVs:		" << m_programs.sceneRender.m_UVLoc << "\n";
+        std::cout << "		ambient: 	" << m_programs.sceneRender.m_matAmbLoc << "\n";
+        std::cout << "		diffuse:	" << m_programs.sceneRender.m_matDiffLoc << "\n";
+        std::cout << "		specular:	" << m_programs.sceneRender.m_matSpecLoc << "\n";
+        std::cout << "		shinyness:	" << m_programs.sceneRender.m_matShinLoc << "\n";
 
-	std::cout << "	Attribute locations \n";
-	std::cout << "		vertex:		" << m_programs.sceneRender.m_vertexLoc << "\n";
-	std::cout << "		normal:		" << m_programs.sceneRender.m_normalLoc << "\n";
-	std::cout << "		UVs:		" << m_programs.sceneRender.m_UVLoc << "\n";
-	std::cout << "		ambient: 	" << m_programs.sceneRender.m_matAmbLoc << "\n";
-	std::cout << "		diffuse:	" << m_programs.sceneRender.m_matDiffLoc << "\n";
-	std::cout << "		specular:	" << m_programs.sceneRender.m_matSpecLoc << "\n";
-	std::cout << "		shinyness:	" << m_programs.sceneRender.m_matShinLoc << "\n";
+        // Get the uniforms locations of the vertex shader
+        m_programs.sceneRender.m_projLoc = m_programs.sceneRender.m_program->uniformLocation("projTransform");
+        m_programs.sceneRender.m_viewLoc = m_programs.sceneRender.m_program->uniformLocation("viewTransform");
+        m_programs.sceneRender.m_transLoc = m_programs.sceneRender.m_program->uniformLocation("sceneTransform");
 
-	// Get the uniforms locations of the vertex shader
-	m_programs.sceneRender.m_projLoc = m_programs.sceneRender.m_program->uniformLocation("projTransform");
-	m_programs.sceneRender.m_viewLoc = m_programs.sceneRender.m_program->uniformLocation("viewTransform");
-	m_programs.sceneRender.m_transLoc = m_programs.sceneRender.m_program->uniformLocation("sceneTransform");
+        m_programs.sceneRender.m_lightPosLoc = m_programs.sceneRender.m_program->uniformLocation("lightPos");
+        m_programs.sceneRender.m_lightColLoc = m_programs.sceneRender.m_program->uniformLocation("lightCol");
 
-	m_programs.sceneRender.m_lightPosLoc = m_programs.sceneRender.m_program->uniformLocation("lightPos");
-	m_programs.sceneRender.m_lightColLoc = m_programs.sceneRender.m_program->uniformLocation("lightCol");
+        m_programs.sceneRender.m_farPlaneLoc = m_programs.sceneRender.m_program->uniformLocation("farPlane");
+        m_programs.sceneRender.m_nearPlaneLoc = m_programs.sceneRender.m_program->uniformLocation("nearPlane");
 
-	m_programs.sceneRender.m_farPlaneLoc = m_programs.sceneRender.m_program->uniformLocation("farPlane");
-	m_programs.sceneRender.m_nearPlaneLoc = m_programs.sceneRender.m_program->uniformLocation("nearPlane");
+        m_programs.sceneRender.m_texLoc[0] = m_programs.sceneRender.m_program->uniformLocation("tex1Texture");
+        m_programs.sceneRender.m_texLoc[1] = m_programs.sceneRender.m_program->uniformLocation("tex2Texture");
+        m_programs.sceneRender.m_texLoaded[0] = m_programs.sceneRender.m_program->uniformLocation("tex1Loaded");
+        m_programs.sceneRender.m_texLoaded[1] = m_programs.sceneRender.m_program->uniformLocation("tex2Loaded");
 
-    m_programs.sceneRender.m_texLoc[0] = m_programs.sceneRender.m_program->uniformLocation("tex1Texture");
-	m_programs.sceneRender.m_texLoc[1] = m_programs.sceneRender.m_program->uniformLocation("tex2Texture");
-    m_programs.sceneRender.m_texLoaded[0] = m_programs.sceneRender.m_program->uniformLocation("tex1Loaded");
-	m_programs.sceneRender.m_texLoaded[1] = m_programs.sceneRender.m_program->uniformLocation("tex2Loaded");
+        std::cout << "	Uniform locations \n";
+        std::cout << "		projection transform:   " << m_programs.sceneRender.m_projLoc << "\n";
+        std::cout << "		view transform:         " << m_programs.sceneRender.m_viewLoc << "\n";
+        std::cout << "		scene transform:        " << m_programs.sceneRender.m_transLoc << "\n";
+        std::cout << "		light position:         " << m_programs.sceneRender.m_lightPosLoc << "\n";
+        std::cout << "		light color:            " << m_programs.sceneRender.m_lightColLoc << "\n";
+        std::cout << "		far plane:              " << m_programs.sceneRender.m_farPlaneLoc << "\n";
+        std::cout << "		near plane:             " << m_programs.sceneRender.m_nearPlaneLoc << "\n";
+        std::cout << "		texture 1:              " << m_programs.sceneRender.m_texLoc[0] << "\n";
+        std::cout << "		texture 2:              " << m_programs.sceneRender.m_texLoc[1] << "\n";
+        std::cout << "		is texture 1 loaded:    " << m_programs.sceneRender.m_texLoaded[0] << "\n";
+        std::cout << "		is texture 2 loaded:    " << m_programs.sceneRender.m_texLoaded[1] << "\n";
 
-	std::cout << "	Uniform locations \n";
-	std::cout << "		projection transform:   " << m_programs.sceneRender.m_projLoc << "\n";
-	std::cout << "		view transform:         " << m_programs.sceneRender.m_viewLoc << "\n";
-	std::cout << "		scene transform:        " << m_programs.sceneRender.m_transLoc << "\n";
-	std::cout << "		light position:         " << m_programs.sceneRender.m_lightPosLoc << "\n";
-	std::cout << "		light color:            " << m_programs.sceneRender.m_lightColLoc << "\n";
-	std::cout << "		far plane:              " << m_programs.sceneRender.m_farPlaneLoc << "\n";
-	std::cout << "		near plane:             " << m_programs.sceneRender.m_nearPlaneLoc << "\n";
-	std::cout << "		texture 1:              " << m_programs.sceneRender.m_texLoc[0] << "\n";
-	std::cout << "		texture 2:              " << m_programs.sceneRender.m_texLoc[1] << "\n";
-	std::cout << "		is texture 1 loaded:    " << m_programs.sceneRender.m_texLoaded[0] << "\n";
-	std::cout << "		is texture 2 loaded:    " << m_programs.sceneRender.m_texLoaded[1] << "\n";
+        m_programs.sceneRender.m_program->release();
+    }
 
-	m_programs.sceneRender.m_program->release();
+    {
+        std::cout << "\n\n	Compiling \"Plane render\" shader \n";
+
+        // Declaration of the shaders
+        QOpenGLShader vs(QOpenGLShader::Vertex, this);
+        QOpenGLShader fs(QOpenGLShader::Fragment, this);
+        QOpenGLShader geom(QOpenGLShader::Geometry, this);
+
+        // Load and compile the shaders
+        vs.compileSourceFile("./project/shaders/BasicGLWindow/planeRender.vert");
+        fs.compileSourceFile("./project/shaders/BasicGLWindow/planeRender.frag");
+
+        // Create the program
+        m_programs.planeRender.m_program = new QOpenGLShaderProgram;
+
+        // Add the shaders
+        m_programs.planeRender.m_program->addShader(&fs);
+        m_programs.planeRender.m_program->addShader(&vs);
+
+        // Link the program
+        m_programs.planeRender.m_program->link();
+
+        // Bind the program (we are gonna use this program)
+        m_programs.planeRender.m_program->bind();
+
+        // Get the attribs locations of the vertex shader
+        m_programs.planeRender.m_vertexLoc = m_programs.planeRender.m_program->attributeLocation("vertex");
+        m_programs.planeRender.m_UVLoc = m_programs.planeRender.m_program->attributeLocation("UV");
+
+        std::cout << "	Attribute locations \n";
+        std::cout << "		vertex:		" << m_programs.planeRender.m_vertexLoc << "\n";
+        std::cout << "		UVs:		" << m_programs.planeRender.m_UVLoc << "\n";
+
+        // Get the uniforms locations of the vertex shader
+        m_programs.planeRender.m_diffuseTexLoc = m_programs.planeRender.m_program->uniformLocation("diffuseTex");
+        m_programs.planeRender.m_depthTexLoc = m_programs.planeRender.m_program->uniformLocation("depthTex");
+        m_programs.planeRender.m_normalsTexLoc = m_programs.planeRender.m_program->uniformLocation("normalsTex");
+
+        std::cout << "	Uniform locations \n";
+        std::cout << "		Diffuse texture:   " << m_programs.planeRender.m_diffuseTexLoc << "\n";
+        std::cout << "		Depth texture         " << m_programs.planeRender.m_depthTexLoc << "\n";
+        std::cout << "		Normals texture:        " << m_programs.planeRender.m_normalsTexLoc << "\n";
+
+        m_programs.planeRender.m_program->release();
+    }
 }
 
 void BasicGLWidget::reloadShaders()
