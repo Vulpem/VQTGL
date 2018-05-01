@@ -18,6 +18,7 @@ uniform int tex1Loaded;
 uniform int tex2Loaded;
 uniform sampler2D tex1Texture;
 uniform sampler2D tex2Texture;
+uniform sampler2D randomTex;
 
 uniform vec4 lightPos;
 uniform vec3 lightCol;
@@ -101,7 +102,6 @@ void main()
 	FragColorDepth = vec4(depthColor,depthColor,depthColor,1);
 
     vec3 norm = n * mat3(projTransform);
-
 	FragColorNormals = vec4(norm.x / 2.0 + 0.5f, norm.y / 2.0 + 0.5f, norm.z / 2.0 + 0.5f, 1);
 
 		//Debug

@@ -203,6 +203,7 @@ private:
 			GLuint m_matAmbLoc, m_matDiffLoc, m_matSpecLoc, m_matShinLoc;
 			GLuint m_lightPosLoc, m_lightColLoc;
 			GLuint m_farPlaneLoc, m_nearPlaneLoc;
+            GLuint m_randomTexLoc;
 
 			GLuint m_texLoc[2];
 			GLuint m_texLoaded[2];
@@ -215,6 +216,8 @@ private:
             GLuint m_normalsTexLoc;
             GLuint m_randomTexLoc;
             GLuint m_whatToDrawLoc;
+            GLuint m_farPlaneLoc, m_nearPlaneLoc;
+            GLuint m_projectionMat;
 			QOpenGLShaderProgram *m_program;
 		} planeRender;
 	} m_programs;

@@ -411,6 +411,8 @@ void BasicGLWidget::PaintToFBO()
             glUniform1i(m_programs.sceneRender.m_texLoaded[n], 0);
         }
     }
+    m_randomTexture->bind(0);
+    glUniform1i(m_programs.sceneRender.m_randomTexLoc, 0);
 
     glUniform3f(m_programs.sceneRender.m_lightColLoc, 1.f, 1.f, 1.f);
 
@@ -588,6 +590,7 @@ void BasicGLWidget::loadShaders()
         m_programs.sceneRender.m_texLoc[1] = m_programs.sceneRender.m_program->uniformLocation("tex2Texture");
         m_programs.sceneRender.m_texLoaded[0] = m_programs.sceneRender.m_program->uniformLocation("tex1Loaded");
         m_programs.sceneRender.m_texLoaded[1] = m_programs.sceneRender.m_program->uniformLocation("tex2Loaded");
+        m_programs.sceneRender.m_randomTexLoc = m_programs.sceneRender.m_program->uniformLocation("randomTex");
 
         std::cout << "	Uniform locations \n";
         std::cout << "		projection transform:   " << m_programs.sceneRender.m_projLoc << "\n";
@@ -601,6 +604,7 @@ void BasicGLWidget::loadShaders()
         std::cout << "		texture 2:              " << m_programs.sceneRender.m_texLoc[1] << "\n";
         std::cout << "		is texture 1 loaded:    " << m_programs.sceneRender.m_texLoaded[0] << "\n";
         std::cout << "		is texture 2 loaded:    " << m_programs.sceneRender.m_texLoaded[1] << "\n";
+        std::cout << "		random texture:         " << m_programs.sceneRender.m_randomTexLoc << "\n";
 
         m_programs.sceneRender.m_program->release();
     }
@@ -644,7 +648,9 @@ void BasicGLWidget::loadShaders()
         m_programs.planeRender.m_normalsTexLoc = m_programs.planeRender.m_program->uniformLocation("normalsTex");
         m_programs.planeRender.m_randomTexLoc = m_programs.planeRender.m_program->uniformLocation("randomTex");
         m_programs.planeRender.m_whatToDrawLoc = m_programs.planeRender.m_program->uniformLocation("whatToDraw");
-
+        m_programs.planeRender.m_farPlaneLoc = m_programs.planeRender.m_program->uniformLocation("farPlane");
+        m_programs.planeRender.m_nearPlaneLoc = m_programs.planeRender.m_program->uniformLocation("nearPlane");
+        m_programs.planeRender.m_projectionMat = m_programs.planeRender.m_program->uniformLocation("projectionMat");
 
         std::cout << "	Uniform locations \n";
         std::cout << "		Diffuse texture:        " << m_programs.planeRender.m_diffuseTexLoc << "\n";
@@ -652,6 +658,9 @@ void BasicGLWidget::loadShaders()
         std::cout << "		Normals texture:        " << m_programs.planeRender.m_normalsTexLoc << "\n";
         std::cout << "		Random texture:         " << m_programs.planeRender.m_randomTexLoc << "\n";
         std::cout << "		What to draw:           " << m_programs.planeRender.m_whatToDrawLoc << "\n";
+        std::cout << "		far plane:              " << m_programs.planeRender.m_farPlaneLoc << "\n";
+        std::cout << "		near plane:             " << m_programs.planeRender.m_nearPlaneLoc << "\n";
+        std::cout << "		projection matrix:      " << m_programs.planeRender.m_projectionMat << "\n";
 
         m_programs.planeRender.m_program->release();
     }
@@ -691,9 +700,13 @@ void BasicGLWidget::projectionTransform()
 
 	// Send the matrix to the shader
 	m_programs.sceneRender.m_program->setUniformValue(m_programs.sceneRender.m_projLoc, proj);
+    m_programs.planeRender.m_program->setUniformValue(m_programs.planeRender.m_projectionMat, proj);
 
 	m_programs.sceneRender.m_program->setUniformValue(m_programs.sceneRender.m_farPlaneLoc, m_zFar);
 	m_programs.sceneRender.m_program->setUniformValue(m_programs.sceneRender.m_nearPlaneLoc, m_zNear);
+
+    m_programs.planeRender.m_program->setUniformValue(m_programs.planeRender.m_farPlaneLoc, m_zFar);
+    m_programs.planeRender.m_program->setUniformValue(m_programs.planeRender.m_nearPlaneLoc, m_zNear);
 
 	m_programs.sceneRender.m_program->release();
 }
