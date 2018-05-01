@@ -89,7 +89,8 @@ public:
         depth = 2,
         normals = 3,
         ambientOcclusion = 4,
-        position = 5
+        position = 5,
+        smoothAO = 6
     };
 
     BasicGLWidget(QString modelFilename = "", QWidget *parent = 0);

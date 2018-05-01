@@ -99,6 +99,10 @@ void BasicGLWindow::SLOT_ChangedWhatToDraw(QString val)
     {
         m_whatToDraw = BasicGLWidget::WhatToDraw::position;
     }
+    else if (val == "Blurred AO")
+    {
+        m_whatToDraw = BasicGLWidget::WhatToDraw::smoothAO;
+    }
     m_glWidget->m_whatToDraw = m_whatToDraw;
     m_glWidget->update();
 }
