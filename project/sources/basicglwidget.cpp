@@ -355,6 +355,19 @@ void BasicGLWidget::initFBO()
     m_planeUVs.create();
     m_planeUVs.bind();
     m_planeUVs.allocate(UVs, sizeof(float) * 8);
+
+    const int randomImageSize = 64;
+
+    srand(time(NULL));
+    QImage randImage = QImage(randomImageSize,randomImageSize, QImage::Format::Format_RGB16);
+    for (int y = 0; y < randomImageSize; y++)
+    {
+        for (int x = 0; x < randomImageSize; x++)
+        {
+            randImage.setPixel(x, y, qRgb(rand() % 256, rand() % 256, rand() % 256));
+        }
+    }
+    m_randomTexture = new QOpenGLTexture(randImage);
 }
 
 void BasicGLWidget::paintGL()
@@ -470,6 +483,10 @@ void BasicGLWidget::PaintToScreen()
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, textures[2]);
     glUniform1i(m_programs.planeRender.m_normalsTexLoc, 2);
+
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, m_randomTexture->textureId());
+    glUniform1i(m_programs.planeRender.m_randomTexLoc, 3);
 
     glUniform1i(m_programs.planeRender.m_whatToDrawLoc, static_cast<int>(m_whatToDraw));
 
@@ -625,14 +642,16 @@ void BasicGLWidget::loadShaders()
         m_programs.planeRender.m_diffuseTexLoc = m_programs.planeRender.m_program->uniformLocation("diffuseTex");
         m_programs.planeRender.m_depthTexLoc = m_programs.planeRender.m_program->uniformLocation("depthTex");
         m_programs.planeRender.m_normalsTexLoc = m_programs.planeRender.m_program->uniformLocation("normalsTex");
+        m_programs.planeRender.m_randomTexLoc = m_programs.planeRender.m_program->uniformLocation("randomTex");
         m_programs.planeRender.m_whatToDrawLoc = m_programs.planeRender.m_program->uniformLocation("whatToDraw");
 
 
         std::cout << "	Uniform locations \n";
-        std::cout << "		Diffuse texture:   " << m_programs.planeRender.m_diffuseTexLoc << "\n";
-        std::cout << "		Depth texture         " << m_programs.planeRender.m_depthTexLoc << "\n";
+        std::cout << "		Diffuse texture:        " << m_programs.planeRender.m_diffuseTexLoc << "\n";
+        std::cout << "		Depth texture           " << m_programs.planeRender.m_depthTexLoc << "\n";
         std::cout << "		Normals texture:        " << m_programs.planeRender.m_normalsTexLoc << "\n";
-        std::cout << "		What to draw:        " << m_programs.planeRender.m_whatToDrawLoc << "\n";
+        std::cout << "		Random texture:         " << m_programs.planeRender.m_randomTexLoc << "\n";
+        std::cout << "		What to draw:           " << m_programs.planeRender.m_whatToDrawLoc << "\n";
 
         m_programs.planeRender.m_program->release();
     }

@@ -9,6 +9,8 @@ in vec3 matdiff;
 in vec3 matspec;
 in float matshin;
 
+uniform mat4 projTransform;
+
 uniform float farPlane;
 uniform float nearPlane;
 
@@ -98,7 +100,9 @@ void main()
 	float depthColor = (gl_FragCoord.z / gl_FragCoord.w) / (farPlane - nearPlane);
 	FragColorDepth = vec4(depthColor,depthColor,depthColor,1);
 
-	FragColorNormals = vec4(n.x / 2.0 + 0.5f, n.y / 2.0 + 0.5f, n.z / 2.0 + 0.5f, 1);
+    vec3 norm = n * mat3(projTransform);
+
+	FragColorNormals = vec4(norm.x / 2.0 + 0.5f, norm.y / 2.0 + 0.5f, norm.z / 2.0 + 0.5f, 1);
 
 		//Debug
 	//FragColorRT0 = FragColorDepth;

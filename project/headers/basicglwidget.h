@@ -213,6 +213,7 @@ private:
             GLuint m_diffuseTexLoc;
             GLuint m_depthTexLoc;
             GLuint m_normalsTexLoc;
+            GLuint m_randomTexLoc;
             GLuint m_whatToDrawLoc;
 			QOpenGLShaderProgram *m_program;
 		} planeRender;
@@ -220,6 +221,7 @@ private:
 
     QOpenGLBuffer m_planeVertices;
     QOpenGLBuffer m_planeUVs;
+    QOpenGLTexture* m_randomTexture;
 
     // FPS
     uint m_FPS;
