@@ -368,6 +368,37 @@ void BasicGLWidget::initFBO()
         }
     }
     m_randomTexture = new QOpenGLTexture(randImage);
+
+    const int kernelSize = 32;
+    std::vector<float> kernel(kernelSize * 3);
+    srand(time(NULL));
+
+    for (int i = 0; i < kernelSize; ++i)
+    {
+        kernel[i * 3 + 0] = (float)rand() / (float)RAND_MAX;
+        kernel[i * 3 + 1] = (float)rand() / (float)RAND_MAX;
+        kernel[i * 3 + 2] = (float)rand() / (float)RAND_MAX;
+
+        //Reescale it, so points are more focused near the center
+        float scale = float(i) / float(kernelSize);
+        scale = scale * scale;
+        scale = 0.1f * (1 - scale) + 1.f * scale;
+
+        const float length = sqrt(
+            (kernel[i * 3 + 0] * kernel[i * 3 + 0])
+            + (kernel[i * 3 + 1] * kernel[i * 3 + 1])
+            + (kernel[i * 3 + 2] * kernel[i * 3 + 2]));
+        kernel[i * 3 + 0] = (kernel[i * 3 + 0] / length) * scale;
+        kernel[i * 3 + 1] = (kernel[i * 3 + 1] / length) * scale;
+        kernel[i * 3 + 2] = (kernel[i * 3 + 2] / length) * scale;
+    }
+
+    m_programs.planeRender.m_program->bind();
+
+    glUniform3fv(m_programs.planeRender.m_kernelsLoc, kernelSize, kernel.data());
+
+    m_programs.planeRender.m_program->release();
+
 }
 
 void BasicGLWidget::paintGL()
@@ -651,6 +682,7 @@ void BasicGLWidget::loadShaders()
         m_programs.planeRender.m_farPlaneLoc = m_programs.planeRender.m_program->uniformLocation("farPlane");
         m_programs.planeRender.m_nearPlaneLoc = m_programs.planeRender.m_program->uniformLocation("nearPlane");
         m_programs.planeRender.m_projectionMat = m_programs.planeRender.m_program->uniformLocation("projectionMat");
+        m_programs.planeRender.m_kernelsLoc = m_programs.planeRender.m_program->uniformLocation("kernel");
 
         std::cout << "	Uniform locations \n";
         std::cout << "		Diffuse texture:        " << m_programs.planeRender.m_diffuseTexLoc << "\n";
@@ -661,6 +693,7 @@ void BasicGLWidget::loadShaders()
         std::cout << "		far plane:              " << m_programs.planeRender.m_farPlaneLoc << "\n";
         std::cout << "		near plane:             " << m_programs.planeRender.m_nearPlaneLoc << "\n";
         std::cout << "		projection matrix:      " << m_programs.planeRender.m_projectionMat << "\n";
+        std::cout << "		kernels:                 " << m_programs.planeRender.m_kernelsLoc << "\n";
 
         m_programs.planeRender.m_program->release();
     }

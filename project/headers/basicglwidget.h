@@ -219,6 +219,7 @@ private:
             GLuint m_whatToDrawLoc;
             GLuint m_farPlaneLoc, m_nearPlaneLoc;
             GLuint m_projectionMat;
+            GLuint m_kernelsLoc;
 			QOpenGLShaderProgram *m_program;
 		} planeRender;
 	} m_programs;
