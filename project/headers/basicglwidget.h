@@ -151,6 +151,7 @@ protected:
 
 private:
     void PaintToFBO();
+    void PaintSSAO();
     void PaintToScreen();
 
     // Shaders
@@ -183,7 +184,7 @@ private:
     QVector3D m_cameraRotation;
 
 	QOpenGLFramebufferObject* m_fbo;
-	QString m_modelFilename;
+    QString m_modelFilename;
     std::vector<MeshPtr> m_meshes;
 
 	// Scene
@@ -215,14 +216,23 @@ private:
             GLuint m_diffuseTexLoc;
             GLuint m_depthTexLoc;
             GLuint m_normalsTexLoc;
-            GLuint m_randomTexLoc;
+            GLuint m_SSAOLoc;
             GLuint m_whatToDrawLoc;
             GLuint m_farPlaneLoc, m_nearPlaneLoc;
-            GLuint m_projectionMat;
-            GLuint m_kernelsLoc;
             GLuint m_screenSize;
 			QOpenGLShaderProgram *m_program;
 		} planeRender;
+        struct SSAOProgram
+        {
+            GLuint m_vertexLoc;
+            GLuint m_depthTexLoc;
+            GLuint m_normalsTexLoc;
+            GLuint m_randomTexLoc;
+            GLuint m_projectionMat;
+            GLuint m_kernelsLoc;
+            GLuint m_screenSize;
+            QOpenGLShaderProgram *m_program;
+        } ssao;
 	} m_programs;
 
     QOpenGLBuffer m_planeVertices;

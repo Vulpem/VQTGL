@@ -334,6 +334,7 @@ void BasicGLWidget::initFBO()
     m_fbo = new QOpenGLFramebufferObject(m_width, m_height, format);
     m_fbo->addColorAttachment(m_width, m_height, GL_RGB16F);
     m_fbo->addColorAttachment(m_width, m_height, GL_RGB16F);
+    m_fbo->addColorAttachment(m_width, m_height);
 
     float vertices[] = {
         -1.f, 1.f, 0.f,
@@ -383,11 +384,11 @@ void BasicGLWidget::initFBO()
         kernel[i * 3 + 2] = (kernel[i * 3 + 2] / length) * scale;
     }
 
-    m_programs.planeRender.m_program->bind();
+    m_programs.ssao.m_program->bind();
 
-    glUniform3fv(m_programs.planeRender.m_kernelsLoc, kernelSize, kernel.data());
+    glUniform3fv(m_programs.ssao.m_kernelsLoc, kernelSize, kernel.data());
 
-    m_programs.planeRender.m_program->release();
+    m_programs.ssao.m_program->release();
 
 }
 
@@ -397,6 +398,7 @@ void BasicGLWidget::paintGL()
     computeFps();
 
     PaintToFBO();
+    PaintSSAO();
     PaintToScreen();	
 }
 
@@ -413,8 +415,8 @@ void BasicGLWidget::PaintToFBO()
         glDisable(GL_CULL_FACE);
 
     m_fbo->bind();
-    GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-    glDrawBuffers(3, bufs);
+    GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+    glDrawBuffers(4, bufs);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     const Mesh& mesh = *m_meshes.front();
@@ -492,6 +494,52 @@ void BasicGLWidget::PaintToFBO()
     m_programs.sceneRender.m_program->release();
 }
 
+void BasicGLWidget::PaintSSAO()
+{
+    m_programs.ssao.m_program->bind();
+
+    m_fbo->bind();
+    GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+    glDrawBuffers(4, bufs);
+
+    const QVector<GLuint> textures = m_fbo->textures();
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, textures[1]);
+    glUniform1i(m_programs.ssao.m_depthTexLoc, 1);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, textures[2]);
+    glUniform1i(m_programs.ssao.m_normalsTexLoc, 2);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, m_randomTexture->textureId());
+    glUniform1i(m_programs.ssao.m_randomTexLoc, 3);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glUniform2f(m_programs.ssao.m_screenSize, m_width, m_height);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_planeVertices.bufferId());
+    glVertexAttribPointer(m_programs.ssao.m_vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(m_programs.ssao.m_vertexLoc);
+
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    m_fbo->release();
+    m_programs.ssao.m_program->release();
+}
+
 void BasicGLWidget::PaintToScreen()
 {
     makeCurrent();
@@ -528,8 +576,8 @@ void BasicGLWidget::PaintToScreen()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, m_randomTexture->textureId());
-    glUniform1i(m_programs.planeRender.m_randomTexLoc, 3);
+    glBindTexture(GL_TEXTURE_2D, textures[3]);
+    glUniform1i(m_programs.planeRender.m_SSAOLoc, 3);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -658,7 +706,6 @@ void BasicGLWidget::loadShaders()
         // Declaration of the shaders
         QOpenGLShader vs(QOpenGLShader::Vertex, this);
         QOpenGLShader fs(QOpenGLShader::Fragment, this);
-        QOpenGLShader geom(QOpenGLShader::Geometry, this);
 
         // Load and compile the shaders
         vs.compileSourceFile("./project/shaders/BasicGLWindow/planeRender.vert");
@@ -687,28 +734,74 @@ void BasicGLWidget::loadShaders()
         m_programs.planeRender.m_diffuseTexLoc = m_programs.planeRender.m_program->uniformLocation("diffuseTex");
         m_programs.planeRender.m_depthTexLoc = m_programs.planeRender.m_program->uniformLocation("depthTex");
         m_programs.planeRender.m_normalsTexLoc = m_programs.planeRender.m_program->uniformLocation("normalsTex");
-        m_programs.planeRender.m_randomTexLoc = m_programs.planeRender.m_program->uniformLocation("randomTex");
         m_programs.planeRender.m_whatToDrawLoc = m_programs.planeRender.m_program->uniformLocation("whatToDraw");
         m_programs.planeRender.m_farPlaneLoc = m_programs.planeRender.m_program->uniformLocation("farPlane");
         m_programs.planeRender.m_nearPlaneLoc = m_programs.planeRender.m_program->uniformLocation("nearPlane");
-        m_programs.planeRender.m_projectionMat = m_programs.planeRender.m_program->uniformLocation("projectionMat");
-        m_programs.planeRender.m_kernelsLoc = m_programs.planeRender.m_program->uniformLocation("kernel");
         m_programs.planeRender.m_screenSize = m_programs.planeRender.m_program->uniformLocation("screenResolution");
-        
+        m_programs.planeRender.m_SSAOLoc = m_programs.planeRender.m_program->uniformLocation("SSAOTex");
+
 
         std::cout << "	Uniform locations \n";
         std::cout << "		Diffuse texture:        " << m_programs.planeRender.m_diffuseTexLoc << "\n";
         std::cout << "		Depth texture           " << m_programs.planeRender.m_depthTexLoc << "\n";
         std::cout << "		Normals texture:        " << m_programs.planeRender.m_normalsTexLoc << "\n";
-        std::cout << "		Random texture:         " << m_programs.planeRender.m_randomTexLoc << "\n";
+        std::cout << "		SSAO texture:           " << m_programs.planeRender.m_SSAOLoc << "\n";
         std::cout << "		What to draw:           " << m_programs.planeRender.m_whatToDrawLoc << "\n";
         std::cout << "		far plane:              " << m_programs.planeRender.m_farPlaneLoc << "\n";
         std::cout << "		near plane:             " << m_programs.planeRender.m_nearPlaneLoc << "\n";
-        std::cout << "		projection matrix:      " << m_programs.planeRender.m_projectionMat << "\n";
-        std::cout << "		kernels:                " << m_programs.planeRender.m_kernelsLoc << "\n";
         std::cout << "		screen resolution:      " << m_programs.planeRender.m_screenSize << "\n";
 
         m_programs.planeRender.m_program->release();
+    }
+
+    {
+        std::cout << "\n\n	Compiling \"SSAO\" shader \n";
+
+        // Declaration of the shaders
+        QOpenGLShader vs(QOpenGLShader::Vertex, this);
+        QOpenGLShader fs(QOpenGLShader::Fragment, this);
+
+        // Load and compile the shaders
+        vs.compileSourceFile("./project/shaders/BasicGLWindow/SSAO.vert");
+        fs.compileSourceFile("./project/shaders/BasicGLWindow/SSAO.frag");
+
+        // Create the program
+        m_programs.ssao.m_program = new QOpenGLShaderProgram;
+
+        // Add the shaders
+        m_programs.ssao.m_program->addShader(&fs);
+        m_programs.ssao.m_program->addShader(&vs);
+
+        // Link the program
+        m_programs.ssao.m_program->link();
+
+        // Bind the program (we are gonna use this program)
+        m_programs.ssao.m_program->bind();
+
+        // Get the attribs locations of the vertex shader
+        m_programs.ssao.m_vertexLoc = m_programs.ssao.m_program->attributeLocation("vertex");
+
+        std::cout << "	Attribute locations \n";
+        std::cout << "		vertex:		" << m_programs.ssao.m_vertexLoc << "\n";
+
+        // Get the uniforms locations of the vertex shader
+        m_programs.ssao.m_depthTexLoc = m_programs.ssao.m_program->uniformLocation("depthTex");
+        m_programs.ssao.m_normalsTexLoc = m_programs.ssao.m_program->uniformLocation("normalsTex");
+        m_programs.ssao.m_randomTexLoc = m_programs.ssao.m_program->uniformLocation("randomTex");
+        m_programs.ssao.m_projectionMat = m_programs.ssao.m_program->uniformLocation("projectionMat");
+        m_programs.ssao.m_kernelsLoc = m_programs.ssao.m_program->uniformLocation("kernel");
+        m_programs.ssao.m_screenSize = m_programs.ssao.m_program->uniformLocation("screenResolution");
+
+
+        std::cout << "	Uniform locations \n";
+        std::cout << "		Depth texture           " << m_programs.ssao.m_depthTexLoc << "\n";
+        std::cout << "		Normals texture:        " << m_programs.ssao.m_normalsTexLoc << "\n";
+        std::cout << "		Random texture:         " << m_programs.ssao.m_randomTexLoc << "\n";
+        std::cout << "		projection matrix:      " << m_programs.ssao.m_projectionMat << "\n";
+        std::cout << "		kernels:                " << m_programs.ssao.m_kernelsLoc << "\n";
+        std::cout << "		screen resolution:      " << m_programs.ssao.m_screenSize << "\n";
+
+        m_programs.ssao.m_program->release();
     }
 }
 
@@ -746,20 +839,18 @@ void BasicGLWidget::projectionTransform()
 
 	// Send the matrix to the shader
 	m_programs.sceneRender.m_program->setUniformValue(m_programs.sceneRender.m_projLoc, proj);
-
 	m_programs.sceneRender.m_program->setUniformValue(m_programs.sceneRender.m_farPlaneLoc, m_zFar);
 	m_programs.sceneRender.m_program->setUniformValue(m_programs.sceneRender.m_nearPlaneLoc, m_zNear);
-
 	m_programs.sceneRender.m_program->release();
 
     m_programs.planeRender.m_program->bind();
-
-    m_programs.planeRender.m_program->setUniformValue(m_programs.planeRender.m_projectionMat, proj);
     m_programs.planeRender.m_program->setUniformValue(m_programs.planeRender.m_farPlaneLoc, m_zFar);
     m_programs.planeRender.m_program->setUniformValue(m_programs.planeRender.m_nearPlaneLoc, m_zNear);
-
     m_programs.planeRender.m_program->release();
 
+    m_programs.ssao.m_program->bind();
+    m_programs.ssao.m_program->setUniformValue(m_programs.ssao.m_projectionMat, proj);
+    m_programs.ssao.m_program->release();
 }
 
 void BasicGLWidget::ResetCamera()
