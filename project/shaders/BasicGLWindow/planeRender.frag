@@ -5,6 +5,7 @@
 #define r_depth 2
 #define r_normals 3
 #define r_ambientOcclusion 4
+#define r_position 5
 
 in vec2 UVs;
 
@@ -43,7 +44,7 @@ float CalculateSSAO()
      // http://john-chapman-graphics.blogspot.com.es/2013/01/ssao-tutorial.html
 
      const int kernelSize = 64;
-     const float radius = 1.f;
+     const float radius = 0.1f;
      const float bias = 0.025f;
 
      vec3 kernel[kernelSize];
@@ -69,9 +70,8 @@ float CalculateSSAO()
     vec3 normal = vec3(rawNormal.x * 2.f - 1.f, rawNormal.y * 2.f - 1.f, rawNormal.z * 2.f - 1.f);
     normal = normalize(normal);
 
-    //float depth = texture2D(depthTex, UVs).z;
-    //vec3 origin = vec3(0, 0, depth /** (farPlane - nearPlane) + nearPlane*/);
     vec3 origin = texture2D(depthTex, UVs).xyz;
+
 
     vec3 rvec = texture(randomTex, UVs /** uNoiseScale*/ ).xyz * 2.0 - 1.0;
     vec3 tangent = normalize(rvec - normal * dot(rvec, normal));
@@ -88,8 +88,8 @@ float CalculateSSAO()
         // project sample position:
         vec4 offset = vec4(sample, 1.0);
         offset = projectionMat * offset;
-        offset.xy /= offset.w;
-        offset.xy = offset.xy * 0.5 + 0.5;
+        offset.xyz /= offset.w;
+        offset.xyz = offset.xyz * 0.5 + 0.5;
         
         // get sample depth:
         float sampleDepth = texture(depthTex, offset.xy).z;
@@ -116,7 +116,12 @@ void main()
     }
     else if (whatToDraw == r_depth)
     {
-    //TODO draw position or depth
+        float depth = texture2D(depthTex, UVs).z;
+        depth = depth / ((farPlane - nearPlane));
+        FragColor = vec4(depth,depth,depth,1);
+    }
+    else if (whatToDraw == r_position)
+    {
         FragColor = texture2D(depthTex, UVs);
     }
     else if (whatToDraw == r_normals)

@@ -700,15 +700,20 @@ void BasicGLWidget::projectionTransform()
 
 	// Send the matrix to the shader
 	m_programs.sceneRender.m_program->setUniformValue(m_programs.sceneRender.m_projLoc, proj);
-    m_programs.planeRender.m_program->setUniformValue(m_programs.planeRender.m_projectionMat, proj);
 
 	m_programs.sceneRender.m_program->setUniformValue(m_programs.sceneRender.m_farPlaneLoc, m_zFar);
 	m_programs.sceneRender.m_program->setUniformValue(m_programs.sceneRender.m_nearPlaneLoc, m_zNear);
 
+	m_programs.sceneRender.m_program->release();
+
+    m_programs.planeRender.m_program->bind();
+
+    m_programs.planeRender.m_program->setUniformValue(m_programs.planeRender.m_projectionMat, proj);
     m_programs.planeRender.m_program->setUniformValue(m_programs.planeRender.m_farPlaneLoc, m_zFar);
     m_programs.planeRender.m_program->setUniformValue(m_programs.planeRender.m_nearPlaneLoc, m_zNear);
 
-	m_programs.sceneRender.m_program->release();
+    m_programs.planeRender.m_program->release();
+
 }
 
 void BasicGLWidget::ResetCamera()

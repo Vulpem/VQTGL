@@ -152,6 +152,11 @@
             </item>
             <item>
              <property name="text">
+              <string>Position</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
               <string>Normals</string>
              </property>
             </item>
