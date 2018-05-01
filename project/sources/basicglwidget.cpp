@@ -331,8 +331,8 @@ void BasicGLWidget::initFBO()
     format.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
 
     m_fbo = new QOpenGLFramebufferObject(m_width, m_height, format);
-    m_fbo->addColorAttachment(m_width, m_height);
-    m_fbo->addColorAttachment(m_width, m_height);
+    m_fbo->addColorAttachment(m_width, m_height, GL_RGB16F);
+    m_fbo->addColorAttachment(m_width, m_height, GL_RGB16F);
 
     float vertices[] = {
         -1.f, 1.f, 0.f,

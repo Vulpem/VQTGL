@@ -98,8 +98,8 @@ void main()
 
 	FragColorRT0 = vec4(Phong(n, L, vertex), 1) * col;
 
-	float depthColor = (gl_FragCoord.z / gl_FragCoord.w) / (farPlane - nearPlane);
-	FragColorDepth = vec4(depthColor,depthColor,depthColor,1);
+	float depthColor = (gl_FragCoord.z / gl_FragCoord.w);// / (farPlane - nearPlane);
+	FragColorDepth = vec4(vertex.xy, depthColor, 1.f);
 
     vec3 norm = n * mat3(projTransform);
 	FragColorNormals = vec4(norm.x / 2.0 + 0.5f, norm.y / 2.0 + 0.5f, norm.z / 2.0 + 0.5f, 1);
