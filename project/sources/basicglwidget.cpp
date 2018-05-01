@@ -342,20 +342,9 @@ void BasicGLWidget::initFBO()
         1.f, -1.f, 0.f,
     };
 
-    float UVs[] = {
-        0.f, 1.f,
-        0.f, 0.f,
-        1.f, 1.f,
-        1.f, 0.f
-    };
-
     m_planeVertices.create();
     m_planeVertices.bind();
     m_planeVertices.allocate(vertices, sizeof(float) * 12);
-
-    m_planeUVs.create();
-    m_planeUVs.bind();
-    m_planeUVs.allocate(UVs, sizeof(float) * 8);
 
     const int randomImageSize = 64;
 
@@ -548,13 +537,11 @@ void BasicGLWidget::PaintToScreen()
 
     glUniform1i(m_programs.planeRender.m_whatToDrawLoc, static_cast<int>(m_whatToDraw));
 
+    glUniform2f(m_programs.planeRender.m_screenSize, m_width, m_height);
+
     glBindBuffer(GL_ARRAY_BUFFER, m_planeVertices.bufferId());
     glVertexAttribPointer(m_programs.planeRender.m_vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(m_programs.planeRender.m_vertexLoc);
-
-    glBindBuffer(GL_ARRAY_BUFFER, m_planeUVs.bufferId());
-    glVertexAttribPointer(m_programs.planeRender.m_UVLoc, 2, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(m_programs.planeRender.m_UVLoc);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -692,11 +679,9 @@ void BasicGLWidget::loadShaders()
 
         // Get the attribs locations of the vertex shader
         m_programs.planeRender.m_vertexLoc = m_programs.planeRender.m_program->attributeLocation("vertex");
-        m_programs.planeRender.m_UVLoc = m_programs.planeRender.m_program->attributeLocation("UV");
 
         std::cout << "	Attribute locations \n";
         std::cout << "		vertex:		" << m_programs.planeRender.m_vertexLoc << "\n";
-        std::cout << "		UVs:		" << m_programs.planeRender.m_UVLoc << "\n";
 
         // Get the uniforms locations of the vertex shader
         m_programs.planeRender.m_diffuseTexLoc = m_programs.planeRender.m_program->uniformLocation("diffuseTex");
@@ -708,6 +693,8 @@ void BasicGLWidget::loadShaders()
         m_programs.planeRender.m_nearPlaneLoc = m_programs.planeRender.m_program->uniformLocation("nearPlane");
         m_programs.planeRender.m_projectionMat = m_programs.planeRender.m_program->uniformLocation("projectionMat");
         m_programs.planeRender.m_kernelsLoc = m_programs.planeRender.m_program->uniformLocation("kernel");
+        m_programs.planeRender.m_screenSize = m_programs.planeRender.m_program->uniformLocation("screenResolution");
+        
 
         std::cout << "	Uniform locations \n";
         std::cout << "		Diffuse texture:        " << m_programs.planeRender.m_diffuseTexLoc << "\n";
@@ -718,7 +705,8 @@ void BasicGLWidget::loadShaders()
         std::cout << "		far plane:              " << m_programs.planeRender.m_farPlaneLoc << "\n";
         std::cout << "		near plane:             " << m_programs.planeRender.m_nearPlaneLoc << "\n";
         std::cout << "		projection matrix:      " << m_programs.planeRender.m_projectionMat << "\n";
-        std::cout << "		kernels:                 " << m_programs.planeRender.m_kernelsLoc << "\n";
+        std::cout << "		kernels:                " << m_programs.planeRender.m_kernelsLoc << "\n";
+        std::cout << "		screen resolution:      " << m_programs.planeRender.m_screenSize << "\n";
 
         m_programs.planeRender.m_program->release();
     }
