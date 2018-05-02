@@ -473,7 +473,7 @@ void BasicGLWidget::PaintScene()
     }
 
     glUniform3f(m_programs.sceneRender.m_lightColLoc, 1.f, 1.f, 1.f);
-
+    glUniform2f(m_programs.sceneRender.m_screenSize, m_width, m_height);
     glUniform1i(m_programs.sceneRender.m_useSSAO, (m_whatToDraw == WhatToDraw::finalImage));
 
     glActiveTexture(GL_TEXTURE6);
@@ -732,6 +732,7 @@ void BasicGLWidget::loadShaders()
         m_programs.sceneRender.m_matDiffLoc = m_programs.sceneRender.m_program->attributeLocation("matdiff");
         m_programs.sceneRender.m_matSpecLoc = m_programs.sceneRender.m_program->attributeLocation("matspec");
         m_programs.sceneRender.m_matShinLoc = m_programs.sceneRender.m_program->attributeLocation("matshin");
+        m_programs.sceneRender.m_screenSize = m_programs.sceneRender.m_program->uniformLocation("screenResolution");
 
         std::cout << "  Attribute locations \n";
         std::cout << "      vertex:                 " << m_programs.sceneRender.m_vertexLoc << "\n";
@@ -741,6 +742,7 @@ void BasicGLWidget::loadShaders()
         std::cout << "      diffuse:                " << m_programs.sceneRender.m_matDiffLoc << "\n";
         std::cout << "      specular:               " << m_programs.sceneRender.m_matSpecLoc << "\n";
         std::cout << "      shinyness:              " << m_programs.sceneRender.m_matShinLoc << "\n";
+        std::cout << "      screen resolution:      " << m_programs.sceneRender.m_screenSize << "\n";
 
         // Get the uniforms locations of the vertex shader
         m_programs.sceneRender.m_projLoc = m_programs.sceneRender.m_program->uniformLocation("projTransform");

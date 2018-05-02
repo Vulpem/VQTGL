@@ -25,17 +25,18 @@ vec2 texCoord = vec2(gl_FragCoord.x / screenResolution.x, gl_FragCoord.y / scree
 
 float SmoothSSAO()
 {
-    vec2 texelSize = 1.0 / vec2(textureSize(SSAOTex, 0));
+    vec2 ssaoUV = vec2(gl_FragCoord.x / screenResolution.x, gl_FragCoord.y / screenResolution.y);
+    vec2 texelSize = 1.0 / screenResolution;
     float result = 0.0;
-    for (int x = -2; x < 2; ++x) 
+    for (int x = -3; x <= 3; ++x) 
     {
-        for (int y = -2; y < 2; ++y) 
+        for (int y = -3; y <= 3; ++y) 
         {
             vec2 offset = vec2(float(x), float(y)) * texelSize;
-            result += texture2D(SSAOTex, texCoord + offset).r;
+            result += texture2D(SSAOTex, ssaoUV + offset).r;
         }
     }
-    return result / (4.0 * 4.0);
+    return result / (7.0 * 7.0);
 }
 
 void main()
@@ -63,17 +64,13 @@ void main()
         float SSAO = texture2D(SSAOTex, texCoord).x;
         FragColor = vec4(SSAO,SSAO,SSAO,1.f);
     }
-    else
+    else if(whatToDraw == r_finalImage)
+    {
+        FragColor = texture2D(diffuseTex, texCoord);// * SSAO;
+    }
+    else if (whatToDraw == r_blurredAO)
     {
         float SSAO = SmoothSSAO();
-
-        if(whatToDraw == r_finalImage)
-        {
-	        FragColor = texture2D(diffuseTex, texCoord) * SSAO;
-        }
-        else if (whatToDraw == r_blurredAO)
-        {
-            FragColor = vec4(SSAO,SSAO,SSAO,1.f);
-        }
+        FragColor = vec4(SSAO,SSAO,SSAO,1.f);
     }
 }

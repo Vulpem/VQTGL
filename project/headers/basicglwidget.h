@@ -207,6 +207,7 @@ private:
 			GLuint m_matAmbLoc, m_matDiffLoc, m_matSpecLoc, m_matShinLoc;
 			GLuint m_lightPosLoc, m_lightColLoc;
             GLuint m_useSSAO;
+            GLuint m_screenSize;
 
 			GLuint m_texLoc[2];
 			GLuint m_texLoaded[2];
