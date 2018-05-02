@@ -32,15 +32,15 @@ float SmoothSSAO()
     vec2 ssaoUV = vec2(gl_FragCoord.x / screenResolution.x, gl_FragCoord.y / screenResolution.y);
     vec2 texelSize = 1.0 / screenResolution;
     float result = 0.0;
-    for (int x = -3; x <= 3; ++x) 
+    for (int x = -2; x <= 2; ++x) 
     {
-        for (int y = -3; y <= 3; ++y) 
+        for (int y = -2; y <= 2; ++y) 
         {
             vec2 offset = vec2(float(x), float(y)) * texelSize;
             result += texture2D(SSAOTex, ssaoUV + offset).r;
         }
     }
-    return result / (7.0 * 7.0);
+    return result / (5.0 * 5.0);
 }
 
 vec3 Lambert (vec3 normal, vec3 L)

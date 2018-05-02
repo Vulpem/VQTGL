@@ -367,9 +367,9 @@ void BasicGLWidget::initFBO()
 
     for (int i = 0; i < kernelSize; ++i)
     {
-        kernel[i * 3 + 0] = (float)rand() / (float)RAND_MAX;
-        kernel[i * 3 + 1] = (float)rand() / (float)RAND_MAX;
-        kernel[i * 3 + 2] = (float)rand() / (float)RAND_MAX;
+        kernel[i * 3 + 0] = ((float)rand() / (float)RAND_MAX) * 2.f - 1.f;
+        kernel[i * 3 + 1] = ((float)rand() / (float)RAND_MAX) * 2.f - 1.f;
+        kernel[i * 3 + 2] = ((float)rand() / (float)RAND_MAX) * 0.9 + 0.1f;
 
         //Reescale it, so points are more focused near the center
         float scale = float(i) / float(kernelSize);
