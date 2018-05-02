@@ -137,6 +137,7 @@ public:
     float GetFPS();
 
     WhatToDraw m_whatToDraw;
+    float m_SSAORadius;
 
 public slots:
     void cleanup();
@@ -238,6 +239,7 @@ private:
             GLuint m_projectionMat;
             GLuint m_kernelsLoc;
             GLuint m_screenSize;
+            GLuint m_radiusLoc;
             QOpenGLShaderProgram *m_program;
         } ssao;
 	} m_programs;

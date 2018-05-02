@@ -119,6 +119,7 @@ void Mesh::UnloadTexture(int n)
 BasicGLWidget::BasicGLWidget(QString modelFilename, QWidget *parent)
     : QOpenGLWidget(parent)
     , m_fbo(nullptr)
+    , m_SSAORadius(0.1f)
 {
 	// To receive key events
 	setFocusPolicy(Qt::StrongFocus);
@@ -563,6 +564,8 @@ void BasicGLWidget::PaintSSAO()
     glVertexAttribPointer(m_programs.ssao.m_vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(m_programs.ssao.m_vertexLoc);
 
+    glUniform1f(m_programs.ssao.m_radiusLoc, m_SSAORadius);
+
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     m_programs.ssao.m_program->release();
@@ -861,6 +864,7 @@ void BasicGLWidget::loadShaders()
         m_programs.ssao.m_projectionMat = m_programs.ssao.m_program->uniformLocation("projectionMat");
         m_programs.ssao.m_kernelsLoc = m_programs.ssao.m_program->uniformLocation("kernel");
         m_programs.ssao.m_screenSize = m_programs.ssao.m_program->uniformLocation("screenResolution");
+        m_programs.ssao.m_radiusLoc = m_programs.ssao.m_program->uniformLocation("sampleRadius");
 
 
         std::cout << "  Uniform locations \n";
@@ -870,6 +874,7 @@ void BasicGLWidget::loadShaders()
         std::cout << "      projection matrix:      " << m_programs.ssao.m_projectionMat << "\n";
         std::cout << "      kernels:                " << m_programs.ssao.m_kernelsLoc << "\n";
         std::cout << "      screen resolution:      " << m_programs.ssao.m_screenSize << "\n";
+        std::cout << "      Sample radius:          " << m_programs.ssao.m_radiusLoc << "\n";
 
         m_programs.ssao.m_program->release();
     }

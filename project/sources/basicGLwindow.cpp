@@ -6,7 +6,7 @@
 #include <qspinbox.h>
 #include <qcheckbox.h>
 #include <qfiledialog.h>
-
+#include <qspinbox.h>
 #include <iostream>
 
 BasicGLWindow::BasicGLWindow(QString name)
@@ -18,6 +18,7 @@ BasicGLWindow::BasicGLWindow(QString name)
 
     m_glWidget = new BasicGLWidget("./project/models/mech.OBJ");
     m_glWidget->m_whatToDraw = m_whatToDraw;
+    m_glWidget->m_SSAORadius = m_ui.SSAORadius->value();
 
 	m_glWidgetContainer = new QVBoxLayout(m_ui.qGLFrame);
 	m_glWidgetContainer->setMargin(0);
@@ -41,7 +42,7 @@ BasicGLWindow::BasicGLWindow(QString name)
 	connect(m_ui.qLoadModelButton, &QPushButton::clicked, this, &BasicGLWindow::SLOT_LoadModel);
 	connect(m_ui.MoveControlsComboBox, &QComboBox::currentTextChanged, this, &BasicGLWindow::SLOT_ChangedInputMovement);
     connect(m_ui.WhatToRender, &QComboBox::currentTextChanged, this, &BasicGLWindow::SLOT_ChangedWhatToDraw);
-
+    connect(m_ui.SSAORadius, SIGNAL(valueChanged(double)), this, SLOT(SLOT_ChangedSSAORadius(double)));
 
 	connect(m_glWidget, &BasicGLWidget::UpdatedFPS, this, &BasicGLWindow::SLOT_UpdateFPS);
 
@@ -127,6 +128,7 @@ void BasicGLWindow::SLOT_LoadModel()
 
 		m_glWidget = new BasicGLWidget(filename);
         m_glWidget->m_whatToDraw = m_whatToDraw;
+        m_glWidget->m_SSAORadius = m_ui.SSAORadius->value();
 		m_glWidgetContainer->addWidget(m_glWidget);
 		m_glWidget->show();
 	}
@@ -194,6 +196,11 @@ void BasicGLWindow::SLOT_UnloadTexture2()
     m_ui.qTex2View->show();
 
     m_filenameTex2.clear();
+}
+
+void BasicGLWindow::SLOT_ChangedSSAORadius(double val)
+{
+    m_glWidget->m_SSAORadius = val;
 }
 
 void BasicGLWindow::keyPressEvent(QKeyEvent * event)

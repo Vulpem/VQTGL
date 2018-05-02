@@ -7,6 +7,7 @@ uniform mat4 projectionMat;
 uniform sampler2D depthTex;
 uniform sampler2D normalsTex;
 uniform sampler2D randomTex;
+uniform float sampleRadius;
 
 uniform vec3 kernel[32];
 
@@ -19,7 +20,6 @@ vec2 texCoord = vec2(gl_FragCoord.x / screenResolution.x, gl_FragCoord.y / scree
 float CalculateSSAO()
 {
      // http://john-chapman-graphics.blogspot.com.es/2013/01/ssao-tutorial.html
-     const float radius = 0.1f;
      const float bias = 0.025f;
 
     vec4 rawNormal = texture2D(normalsTex, texCoord);
@@ -40,7 +40,7 @@ float CalculateSSAO()
     {
         // get sample position:
         vec3 sample = tbn * kernel[i];
-        sample = sample * radius + position;
+        sample = sample * sampleRadius + position;
         
         // project sample position:
         vec4 offset = vec4(sample, 1.0);
@@ -52,7 +52,7 @@ float CalculateSSAO()
         float sampleDepth = texture(depthTex, offset.xy).z;
 
         // range check & accumulate:
-        float rangeCheck = smoothstep(0.f, 1.f, radius / abs(position.z - sampleDepth));
+        float rangeCheck = smoothstep(0.f, 1.f, sampleRadius / abs(position.z - sampleDepth));
         occlusion += (sampleDepth >= sample.z + bias ? 1.0 : 0.0) * rangeCheck;
     }
 

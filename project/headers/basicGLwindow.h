@@ -33,6 +33,7 @@ void SLOT_LoadTexture();
 void SLOT_UnloadTexture();
 void SLOT_LoadTexture2();
 void SLOT_UnloadTexture2();
+void SLOT_ChangedSSAORadius(double val);
 
 signals:
 
