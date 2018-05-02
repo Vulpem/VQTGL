@@ -47,8 +47,7 @@ void main()
     }
     else if (whatToDraw == r_depth)
     {
-        float depth = texture2D(posTex, texCoord).z;
-        depth = (depth - nearPlane) / (farPlane - nearPlane);
+        float depth = texture2D(posTex, texCoord).a / (farPlane - nearPlane);
         FragColor = vec4(depth,depth,depth,1);
     }
     else if (whatToDraw == r_position)
