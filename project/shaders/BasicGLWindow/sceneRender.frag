@@ -34,7 +34,7 @@ vec3 Lambert (vec3 normal, vec3 L)
   vec3 resultCol = ambientLight * matamb;
   if(useSSAO != 0)
   {
-     resultCol *= texture2D(SSAOTex, UV).x;
+    // resultCol *= texture2D(SSAOTex, UV).x;
   }
 
   // Add the diffuse component

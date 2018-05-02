@@ -222,7 +222,7 @@ private:
 		{
             GLuint m_vertexLoc;
             GLuint m_diffuseTexLoc;
-            GLuint m_depthTexLoc;
+            GLuint m_posTexLoc;
             GLuint m_normalsTexLoc;
             GLuint m_SSAOLoc;
             GLuint m_whatToDrawLoc;
@@ -233,7 +233,7 @@ private:
         struct SSAOProgram
         {
             GLuint m_vertexLoc;
-            GLuint m_depthTexLoc;
+            GLuint m_posTexLoc;
             GLuint m_normalsTexLoc;
             GLuint m_randomTexLoc;
             GLuint m_projectionMat;

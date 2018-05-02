@@ -14,7 +14,7 @@ uniform float nearPlane;
 uniform vec2 screenResolution;
 
 uniform sampler2D diffuseTex;
-uniform sampler2D depthTex;
+uniform sampler2D posTex;
 uniform sampler2D normalsTex;
 uniform sampler2D randomTex;
 uniform sampler2D SSAOTex;
@@ -46,13 +46,13 @@ void main()
     }
     else if (whatToDraw == r_depth)
     {
-        float depth = texture2D(depthTex, texCoord).a;
-        depth = depth / (farPlane - nearPlane);
+        float depth = texture2D(posTex, texCoord).z;
+        depth = (depth - nearPlane) / (farPlane - nearPlane);
         FragColor = vec4(depth,depth,depth,1);
     }
     else if (whatToDraw == r_position)
     {
-        FragColor = texture2D(depthTex, texCoord);
+        FragColor = texture2D(posTex, texCoord);
     }
     else if (whatToDraw == r_normals)
     {

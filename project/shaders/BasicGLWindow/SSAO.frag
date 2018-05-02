@@ -4,7 +4,7 @@ uniform vec2 screenResolution;
 
 uniform mat4 projectionMat;
 
-uniform sampler2D depthTex;
+uniform sampler2D posTex;
 uniform sampler2D normalsTex;
 uniform sampler2D randomTex;
 uniform float sampleRadius;
@@ -26,7 +26,7 @@ float CalculateSSAO()
     vec3 normal = vec3(rawNormal.x * 2.f - 1.f, rawNormal.y * 2.f - 1.f, rawNormal.z * 2.f - 1.f);
     normal = normalize(normal);
 
-    vec3 position = texture2D(depthTex, texCoord).xyz;
+    vec3 position = texture2D(posTex, texCoord).xyz;
 
     vec2 noiseScale = vec2(screenResolution.x / 64.f, screenResolution.y / 64.f);
     vec3 rvec = normalize(texture(randomTex, vec2(texCoord.x * noiseScale.x, texCoord.y * noiseScale.y))).xyz * 2.0 - 1.0;
@@ -49,7 +49,7 @@ float CalculateSSAO()
         offset.xy = offset.xy * 0.5 + 0.5;
         
         // get sample depth:
-        float sampleDepth = texture(depthTex, offset.xy).z;
+        float sampleDepth = texture(posTex, offset.xy).z;
 
         // range check & accumulate:
         float rangeCheck = smoothstep(0.f, 1.f, sampleRadius / abs(position.z - sampleDepth));

@@ -536,7 +536,7 @@ void BasicGLWidget::PaintSSAO()
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, textures[1]);
-    glUniform1i(m_programs.ssao.m_depthTexLoc, 1);
+    glUniform1i(m_programs.ssao.m_posTexLoc, 1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -589,7 +589,7 @@ void BasicGLWidget::PaintToScreen()
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, textures[1]);
-    glUniform1i(m_programs.planeRender.m_depthTexLoc, 1);
+    glUniform1i(m_programs.planeRender.m_posTexLoc, 1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -805,7 +805,7 @@ void BasicGLWidget::loadShaders()
 
         // Get the uniforms locations of the vertex shader
         m_programs.planeRender.m_diffuseTexLoc = m_programs.planeRender.m_program->uniformLocation("diffuseTex");
-        m_programs.planeRender.m_depthTexLoc = m_programs.planeRender.m_program->uniformLocation("depthTex");
+        m_programs.planeRender.m_posTexLoc = m_programs.planeRender.m_program->uniformLocation("posTex");
         m_programs.planeRender.m_normalsTexLoc = m_programs.planeRender.m_program->uniformLocation("normalsTex");
         m_programs.planeRender.m_whatToDrawLoc = m_programs.planeRender.m_program->uniformLocation("whatToDraw");
         m_programs.planeRender.m_farPlaneLoc = m_programs.planeRender.m_program->uniformLocation("farPlane");
@@ -816,7 +816,7 @@ void BasicGLWidget::loadShaders()
 
         std::cout << "  Uniform locations \n";
         std::cout << "      Diffuse texture:        " << m_programs.planeRender.m_diffuseTexLoc << "\n";
-        std::cout << "      Depth texture           " << m_programs.planeRender.m_depthTexLoc << "\n";
+        std::cout << "      Positions texture       " << m_programs.planeRender.m_posTexLoc << "\n";
         std::cout << "      Normals texture:        " << m_programs.planeRender.m_normalsTexLoc << "\n";
         std::cout << "      SSAO texture:           " << m_programs.planeRender.m_SSAOLoc << "\n";
         std::cout << "      What to draw:           " << m_programs.planeRender.m_whatToDrawLoc << "\n";
@@ -858,7 +858,7 @@ void BasicGLWidget::loadShaders()
         std::cout << "      vertex:                 " << m_programs.ssao.m_vertexLoc << "\n";
 
         // Get the uniforms locations of the vertex shader
-        m_programs.ssao.m_depthTexLoc = m_programs.ssao.m_program->uniformLocation("depthTex");
+        m_programs.ssao.m_posTexLoc = m_programs.ssao.m_program->uniformLocation("posTex");
         m_programs.ssao.m_normalsTexLoc = m_programs.ssao.m_program->uniformLocation("normalsTex");
         m_programs.ssao.m_randomTexLoc = m_programs.ssao.m_program->uniformLocation("randomTex");
         m_programs.ssao.m_projectionMat = m_programs.ssao.m_program->uniformLocation("projectionMat");
@@ -868,7 +868,7 @@ void BasicGLWidget::loadShaders()
 
 
         std::cout << "  Uniform locations \n";
-        std::cout << "      Depth texture           " << m_programs.ssao.m_depthTexLoc << "\n";
+        std::cout << "      Positions texture       " << m_programs.ssao.m_posTexLoc << "\n";
         std::cout << "      Normals texture:        " << m_programs.ssao.m_normalsTexLoc << "\n";
         std::cout << "      Random texture:         " << m_programs.ssao.m_randomTexLoc << "\n";
         std::cout << "      projection matrix:      " << m_programs.ssao.m_projectionMat << "\n";
