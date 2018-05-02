@@ -263,50 +263,71 @@ void BasicGLWindow::keyPressEvent(QKeyEvent * event)
 
 void BasicGLWindow::mousePressEvent(QMouseEvent * event)
 {
-    m_mouseLastPos = event->pos();
+    QPoint pos = event->pos();
+    if (IsOverGLWidget(pos))
+    {
+        m_mouseLastPos = event->pos();
+        m_moving = true;
+    }
 }
 
 void BasicGLWindow::mouseMoveEvent(QMouseEvent * event)
 {
-    int dx = event->x() - m_mouseLastPos.x();
-    int dy = event->y() - m_mouseLastPos.y();
-    if (event->buttons() & Qt::LeftButton) {
-        if(m_inputMovement == InputMovement::FPScamera)
-            m_glWidget->RotateCamera(QVector3D(-dy, -dx, 0.f));
-        else
-            m_glWidget->RotateAll(QVector3D(dy, dx, 0.f));
-    }
-
-    else if (event->buttons() & Qt::RightButton) {
-        if(m_inputMovement != InputMovement::FPScamera)
-            m_glWidget->RotateAll(QVector3D(dy, 0.f, dx));
-    }
-    else if (event->buttons() & Qt::MiddleButton)
+    QPoint pos = event->pos();
+    if (m_moving)
     {
-        if (m_inputMovement == InputMovement::FPScamera)
-            m_glWidget->TranslateCamera(m_glWidget->GetCameraRight() * -dx + m_glWidget->GetCameraUp() * dy);
-        else
-            m_glWidget->TranslateAll(QVector3D(dx / 4.f, -dy / 4.f, 0.f));
+        int dx = event->x() - m_mouseLastPos.x();
+        int dy = event->y() - m_mouseLastPos.y();
+        if (event->buttons() & Qt::LeftButton) {
+            if (m_inputMovement == InputMovement::FPScamera)
+                m_glWidget->RotateCamera(QVector3D(-dy, -dx, 0.f));
+            else
+                m_glWidget->RotateAll(QVector3D(dy, dx, 0.f));
+        }
+
+        else if (event->buttons() & Qt::RightButton) {
+            if (m_inputMovement != InputMovement::FPScamera)
+                m_glWidget->RotateAll(QVector3D(dy, 0.f, dx));
+        }
+        else if (event->buttons() & Qt::MiddleButton)
+        {
+            if (m_inputMovement == InputMovement::FPScamera)
+                m_glWidget->TranslateCamera(m_glWidget->GetCameraRight() * -dx + m_glWidget->GetCameraUp() * dy);
+            else
+                m_glWidget->TranslateAll(QVector3D(dx / 4.f, -dy / 4.f, 0.f));
+        }
     }
     m_mouseLastPos = event->pos();
 }
 
 void BasicGLWindow::mouseReleaseEvent(QMouseEvent * event)
 {
+    m_moving = false;
 }
 
 void BasicGLWindow::wheelEvent(QWheelEvent * event)
 {
-    const int degrees = event->delta() / 8;
-    if (degrees)
+    QPoint pos = event->pos();
+    if (IsOverGLWidget(pos))
     {
-		if (m_inputMovement == InputMovement::FPScamera)
-		{
-			m_glWidget->TranslateCamera(m_glWidget->GetCameraForward() * degrees / 10.f);
-		}
-		else
-		{
-			m_glWidget->TranslateAll(QVector3D(0.f, 0.f, degrees / 10.f));
-		}
+        const int degrees = event->delta() / 8;
+        if (degrees)
+        {
+            if (m_inputMovement == InputMovement::FPScamera)
+            {
+                m_glWidget->TranslateCamera(m_glWidget->GetCameraForward() * degrees / 10.f);
+            }
+            else
+            {
+                m_glWidget->TranslateAll(QVector3D(0.f, 0.f, degrees / 10.f));
+            }
+        }
     }
+}
+
+bool BasicGLWindow::IsOverGLWidget(QPoint pos)
+{
+    const QPoint min = m_glWidget->pos();
+    const QPoint max = QPoint(min.x() + m_glWidget->width(), min.y() + m_glWidget->height());
+    return ( pos.x() > min.x() && pos.y() > min.y() && pos.x() < max.x() && pos.y() < max.y());
 }

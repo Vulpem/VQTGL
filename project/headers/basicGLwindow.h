@@ -45,13 +45,15 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
     void wheelEvent(QWheelEvent* event) override;
 
+    bool IsOverGLWidget(QPoint pos);
+
 	Ui::BasicGLWindow m_ui;
 	BasicGLWidget* m_glWidget;
 	QVBoxLayout* m_glWidgetContainer;
 
     QString m_filenameTex1;
     QString m_filenameTex2;
-
+    bool m_moving = false;
     //Input
     QPoint m_mouseLastPos;
 	InputMovement m_inputMovement;
