@@ -284,7 +284,7 @@ void BasicGLWindow::mouseMoveEvent(QMouseEvent * event)
     else if (event->buttons() & Qt::MiddleButton)
     {
         if (m_inputMovement == InputMovement::FPScamera)
-            m_glWidget->TranslateCamera(QVector3D(dx, dy, 0.f));
+            m_glWidget->TranslateCamera(m_glWidget->GetCameraRight() * -dx + m_glWidget->GetCameraUp() * dy);
         else
             m_glWidget->TranslateAll(QVector3D(dx / 4.f, -dy / 4.f, 0.f));
     }
