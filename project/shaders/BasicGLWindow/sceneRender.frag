@@ -11,22 +11,18 @@ in float matshin;
 
 uniform mat4 projTransform;
 
-uniform float farPlane;
-uniform float nearPlane;
-
 uniform int tex1Loaded;
 uniform int tex2Loaded;
 uniform sampler2D tex1Texture;
 uniform sampler2D tex2Texture;
-uniform sampler2D randomTex;
+uniform sampler2D SSAOTex;
+
+uniform int useSSAO;
 
 uniform vec4 lightPos;
 uniform vec3 lightCol;
 
-
-layout (location = 0) out vec4 FragColorRT0;
-layout (location = 1) out vec4 FragColorDepth;
-layout (location = 2) out vec4 FragColorNormals;
+out vec4 OutColor;
 
 vec3 ambientLight = vec3(0.3, 0.3, 0.3);
 
@@ -36,6 +32,10 @@ vec3 Lambert (vec3 normal, vec3 L)
 
   // Color initialization with the ambient color
   vec3 resultCol = ambientLight * matamb;
+  if(useSSAO != 0)
+  {
+     resultCol *= texture2D(SSAOTex, UV).x;
+  }
 
   // Add the diffuse component
   if (dot (L, normal) > 0)
@@ -96,15 +96,5 @@ void main()
 	vec3 L = normalize(lightPos.xyz - vec3(vertex).xyz);
 	vec4 col = BlendTextures();
 
-	FragColorRT0 = vec4(Phong(n, L, vertex), 1) * col;
-
-	float depthColor = (gl_FragCoord.z / gl_FragCoord.w);// / (farPlane - nearPlane);
-	FragColorDepth = vec4(vertex.xy, depthColor, 1.f);
-
-    vec3 norm = n * mat3(projTransform);
-	FragColorNormals = vec4(norm.x / 2.0 + 0.5f, norm.y / 2.0 + 0.5f, norm.z / 2.0 + 0.5f, 1);
-
-		//Debug
-	//FragColorRT0 = FragColorDepth;
-	//FragColorRT0 = FragColorNormals;
+	OutColor = vec4(Phong(n, L, vertex), 1) * col;
 }

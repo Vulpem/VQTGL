@@ -10,7 +10,7 @@ uniform sampler2D randomTex;
 
 uniform vec3 kernel[32];
 
-layout (location = 3) out vec4 SSAO;
+out vec4 SSAO;
 
 #define kernelSize 32
 

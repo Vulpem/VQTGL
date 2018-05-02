@@ -151,7 +151,8 @@ protected:
     void resizeGL(int width, int height) override;
 
 private:
-    void PaintToFBO();
+    void PaintToFBOFill();
+    void PaintScene();
     void PaintSSAO();
     void PaintToScreen();
 
@@ -165,7 +166,6 @@ private:
 
 	// Scene
 	void computeBBoxScene();
-	void meshTransform(MeshPtr mesh); // Position and orientation of the scene
     void computeFps();
 
 	/* Attributes */
@@ -205,12 +205,18 @@ private:
 			GLuint m_vertexLoc, m_normalLoc, m_UVLoc;
 			GLuint m_matAmbLoc, m_matDiffLoc, m_matSpecLoc, m_matShinLoc;
 			GLuint m_lightPosLoc, m_lightColLoc;
-			GLuint m_farPlaneLoc, m_nearPlaneLoc;
-            GLuint m_randomTexLoc;
+            GLuint m_useSSAO;
 
 			GLuint m_texLoc[2];
 			GLuint m_texLoaded[2];
+            GLuint m_SSAOLoc;
 		} sceneRender;
+        struct FBOFill
+        {
+            QOpenGLShaderProgram *m_program;
+            GLuint m_transLoc, m_projLoc, m_viewLoc;
+            GLuint m_vertexLoc, m_normalLoc;
+        }fboFill;
 		struct PlaneRenderProgram
 		{
             GLuint m_vertexLoc;
