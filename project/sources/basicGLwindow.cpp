@@ -280,21 +280,21 @@ void BasicGLWindow::mouseMoveEvent(QMouseEvent * event)
         int dy = event->y() - m_mouseLastPos.y();
         if (event->buttons() & Qt::LeftButton) {
             if (m_inputMovement == InputMovement::FPScamera)
-                m_glWidget->RotateCamera(QVector3D(-dy, -dx, 0.f));
+                m_glWidget->RotateCamera(QVector3D(-dy / 3.f, -dx / 3.f, 0.f));
             else
                 m_glWidget->RotateAll(QVector3D(dy, dx, 0.f));
         }
 
         else if (event->buttons() & Qt::RightButton) {
             if (m_inputMovement != InputMovement::FPScamera)
-                m_glWidget->RotateAll(QVector3D(dy, 0.f, dx));
+                m_glWidget->RotateAll(QVector3D(dy / 3.f, 0.f, dx / 3.f));
         }
         else if (event->buttons() & Qt::MiddleButton)
         {
             if (m_inputMovement == InputMovement::FPScamera)
                 m_glWidget->TranslateCamera(m_glWidget->GetCameraRight() * -dx + m_glWidget->GetCameraUp() * dy);
             else
-                m_glWidget->TranslateAll(QVector3D(dx / 4.f, -dy / 4.f, 0.f));
+                m_glWidget->TranslateAll(QVector3D(dx /7.f, -dy / 7.f, 0.f));
         }
     }
     m_mouseLastPos = event->pos();

@@ -456,6 +456,34 @@
         <layout class="QVBoxLayout" name="verticalLayout_5"/>
        </item>
        <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>   Use WASD to move around</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>   QE to move down and up</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>   R to reset the scene</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>   B to change the background color</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
