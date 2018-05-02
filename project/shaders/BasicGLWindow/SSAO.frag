@@ -58,7 +58,7 @@ float CalculateSSAO()
 
      occlusion = 1- (occlusion / kernelSize);
 
-     return max(min(occlusion, 1.f), 0.1f);
+     return max(min(occlusion, 1.f), 0.05f);
 }
 
 void main()
