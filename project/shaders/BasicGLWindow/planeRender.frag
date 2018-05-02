@@ -9,8 +9,6 @@
 #define r_blurredAO 6
 
 uniform int whatToDraw;
-uniform float farPlane;
-uniform float nearPlane;
 uniform vec2 screenResolution;
 
 uniform sampler2D diffuseTex;
@@ -47,7 +45,7 @@ void main()
     }
     else if (whatToDraw == r_depth)
     {
-        float depth = texture2D(posTex, texCoord).a / (farPlane - nearPlane);
+        float depth = texture2D(posTex, texCoord).a;
         FragColor = vec4(depth,depth,depth,1);
     }
     else if (whatToDraw == r_position)

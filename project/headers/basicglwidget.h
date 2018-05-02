@@ -217,6 +217,7 @@ private:
         {
             QOpenGLShaderProgram *m_program;
             GLuint m_transLoc, m_projLoc, m_viewLoc;
+            GLuint m_farPlaneLoc, m_nearPlaneLoc;
             GLuint m_vertexLoc, m_normalLoc;
         }fboFill;
 		struct PlaneRenderProgram
@@ -227,7 +228,6 @@ private:
             GLuint m_normalsTexLoc;
             GLuint m_SSAOLoc;
             GLuint m_whatToDrawLoc;
-            GLuint m_farPlaneLoc, m_nearPlaneLoc;
             GLuint m_screenSize;
 			QOpenGLShaderProgram *m_program;
 		} planeRender;

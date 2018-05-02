@@ -21,12 +21,16 @@ float CalculateSSAO()
 {
      // http://john-chapman-graphics.blogspot.com.es/2013/01/ssao-tutorial.html
      const float bias = 0.025f;
+     vec4 position = texture2D(posTex, texCoord);
+
+     if(position.w >= 0.999999)
+     { return 1.0f; }
 
     vec4 rawNormal = texture2D(normalsTex, texCoord);
     vec3 normal = vec3(rawNormal.x * 2.f - 1.f, rawNormal.y * 2.f - 1.f, rawNormal.z * 2.f - 1.f);
     normal = normalize(normal);
 
-    vec3 position = texture2D(posTex, texCoord).xyz;
+
 
     vec2 noiseScale = vec2(screenResolution.x / 64.f, screenResolution.y / 64.f);
     vec3 rvec = normalize(texture(randomTex, vec2(texCoord.x * noiseScale.x, texCoord.y * noiseScale.y))).xyz * 2.0 - 1.0;
@@ -40,7 +44,7 @@ float CalculateSSAO()
     {
         // get sample position:
         vec3 sample = tbn * kernel[i];
-        sample = sample * sampleRadius + position;
+        sample = sample * sampleRadius + position.xyz;
         
         // project sample position:
         vec4 offset = vec4(sample, 1.0);

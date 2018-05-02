@@ -8,11 +8,14 @@ uniform mat4 projTransform;
 layout (location = 0) out vec4 FragColorDepth;
 layout (location = 1) out vec4 FragColorNormals;
 
+uniform float farPlane;
+uniform float nearPlane;
+
 void main()
 {
 	vec3 n = normalize(normal);
 
-	float depthColor = (gl_FragCoord.z / gl_FragCoord.w);// / (farPlane - nearPlane);
+	float depthColor = (gl_FragCoord.z / gl_FragCoord.w) / (farPlane - nearPlane);
 	FragColorDepth = vec4(vertex.xyz, depthColor);
 
     vec3 norm = n;// * mat3(projTransform);

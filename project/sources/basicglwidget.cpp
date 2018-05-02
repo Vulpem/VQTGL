@@ -688,11 +688,15 @@ void BasicGLWidget::loadShaders()
         m_programs.fboFill.m_projLoc = m_programs.fboFill.m_program->uniformLocation("projTransform");
         m_programs.fboFill.m_viewLoc = m_programs.fboFill.m_program->uniformLocation("viewTransform");
         m_programs.fboFill.m_transLoc = m_programs.fboFill.m_program->uniformLocation("sceneTransform");
+        m_programs.fboFill.m_farPlaneLoc = m_programs.fboFill.m_program->uniformLocation("farPlane");
+        m_programs.fboFill.m_nearPlaneLoc = m_programs.fboFill.m_program->uniformLocation("nearPlane");
 
         std::cout << "  Uniform locations \n";
         std::cout << "      projection transform:   " << m_programs.fboFill.m_projLoc << "\n";
         std::cout << "      view transform:         " << m_programs.fboFill.m_viewLoc << "\n";
         std::cout << "      scene transform:        " << m_programs.fboFill.m_transLoc << "\n";
+        std::cout << "      far plane:              " << m_programs.fboFill.m_farPlaneLoc << "\n";
+        std::cout << "      near plane:             " << m_programs.fboFill.m_nearPlaneLoc << "\n";
 
         m_programs.fboFill.m_program->release();
     }
@@ -810,8 +814,6 @@ void BasicGLWidget::loadShaders()
         m_programs.planeRender.m_posTexLoc = m_programs.planeRender.m_program->uniformLocation("posTex");
         m_programs.planeRender.m_normalsTexLoc = m_programs.planeRender.m_program->uniformLocation("normalsTex");
         m_programs.planeRender.m_whatToDrawLoc = m_programs.planeRender.m_program->uniformLocation("whatToDraw");
-        m_programs.planeRender.m_farPlaneLoc = m_programs.planeRender.m_program->uniformLocation("farPlane");
-        m_programs.planeRender.m_nearPlaneLoc = m_programs.planeRender.m_program->uniformLocation("nearPlane");
         m_programs.planeRender.m_screenSize = m_programs.planeRender.m_program->uniformLocation("screenResolution");
         m_programs.planeRender.m_SSAOLoc = m_programs.planeRender.m_program->uniformLocation("SSAOTex");
 
@@ -822,8 +824,6 @@ void BasicGLWidget::loadShaders()
         std::cout << "      Normals texture:        " << m_programs.planeRender.m_normalsTexLoc << "\n";
         std::cout << "      SSAO texture:           " << m_programs.planeRender.m_SSAOLoc << "\n";
         std::cout << "      What to draw:           " << m_programs.planeRender.m_whatToDrawLoc << "\n";
-        std::cout << "      far plane:              " << m_programs.planeRender.m_farPlaneLoc << "\n";
-        std::cout << "      near plane:             " << m_programs.planeRender.m_nearPlaneLoc << "\n";
         std::cout << "      screen resolution:      " << m_programs.planeRender.m_screenSize << "\n";
 
         m_programs.planeRender.m_program->release();
@@ -913,17 +913,15 @@ void BasicGLWidget::projectionTransform()
     // Send the matrix to the shader
     m_programs.fboFill.m_program->bind();
     m_programs.fboFill.m_program->setUniformValue(m_programs.fboFill.m_projLoc, proj);
+    m_programs.fboFill.m_program->setUniformValue(m_programs.fboFill.m_farPlaneLoc, m_zFar);
+    m_programs.fboFill.m_program->setUniformValue(m_programs.fboFill.m_nearPlaneLoc, m_zNear);
 
     m_programs.sceneRender.m_program->bind();
     m_programs.sceneRender.m_program->setUniformValue(m_programs.sceneRender.m_projLoc, proj);
 
     m_programs.ssao.m_program->bind();
     m_programs.ssao.m_program->setUniformValue(m_programs.ssao.m_projectionMat, proj);
-
-    m_programs.planeRender.m_program->bind();
-    m_programs.planeRender.m_program->setUniformValue(m_programs.planeRender.m_farPlaneLoc, m_zFar);
-    m_programs.planeRender.m_program->setUniformValue(m_programs.planeRender.m_nearPlaneLoc, m_zNear);
-    m_programs.planeRender.m_program->release();
+    m_programs.ssao.m_program->release();
 }
 
 void BasicGLWidget::ResetCamera()
