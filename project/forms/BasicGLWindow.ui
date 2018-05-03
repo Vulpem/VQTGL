@@ -232,6 +232,9 @@
             <property name="singleStep">
              <number>1</number>
             </property>
+            <property name="value">
+             <number>150000</number>
+            </property>
             <property name="tracking">
              <bool>true</bool>
             </property>
