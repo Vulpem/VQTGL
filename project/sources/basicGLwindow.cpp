@@ -16,7 +16,7 @@ BasicGLWindow::BasicGLWindow(QString name)
 {
     m_ui.setupUi(this);
 
-    m_glWidget = new BasicGLWidget("./project/models/mech.OBJ");
+    m_glWidget = new BasicGLWidget("./project/models/cubes.obj");
     m_glWidget->m_whatToDraw = m_whatToDraw;
     m_glWidget->m_SSAORadius = m_ui.SSAORadius->value();
 

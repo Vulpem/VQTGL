@@ -18,6 +18,7 @@ struct Material {
   float diffuse[4];
   float specular[4];
   float shininess;
+  std::string textureName;
   Material();
 };
 #ifndef __MODEL__DEF__ 

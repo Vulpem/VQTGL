@@ -424,7 +424,12 @@ static void loadMTL(std::string filename) {
 #endif
       for (int i = 0; i < 3; ++i) 
 	ss >> Materials.back().specular[i];
-    } else {
+    } else if (wrd == "map_Kd") {
+		char texName[256];
+		ss >> texName;
+		Materials.back().textureName = texName;
+		//TODO actually load the texture
+	} else {
 #if DEBUGPARSER
     cerr << "MTL parser: read line of type " << wrd << " which is not supported. Skipped..." << endl;
 #endif
