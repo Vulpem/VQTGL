@@ -42,7 +42,10 @@ BasicGLWindow::BasicGLWindow(QString name)
 	connect(m_ui.qLoadModelButton, &QPushButton::clicked, this, &BasicGLWindow::SLOT_LoadModel);
 	connect(m_ui.MoveControlsComboBox, &QComboBox::currentTextChanged, this, &BasicGLWindow::SLOT_ChangedInputMovement);
     connect(m_ui.WhatToRender, &QComboBox::currentTextChanged, this, &BasicGLWindow::SLOT_ChangedWhatToDraw);
+
     connect(m_ui.SSAORadius, SIGNAL(valueChanged(double)), this, SLOT(SLOT_ChangedSSAORadius(double)));
+	connect(m_ui.SSAOSlider, SIGNAL(valueChanged(int)), this, SLOT(SLOT_ChangedSSAOSlider(int)));
+
 
 	connect(m_glWidget, &BasicGLWidget::UpdatedFPS, this, &BasicGLWindow::SLOT_UpdateFPS);
 
@@ -201,6 +204,12 @@ void BasicGLWindow::SLOT_UnloadTexture2()
 void BasicGLWindow::SLOT_ChangedSSAORadius(double val)
 {
     m_glWidget->m_SSAORadius = val;
+	m_glWidget->update();
+}
+
+void BasicGLWindow::SLOT_ChangedSSAOSlider(int val)
+{
+	m_ui.SSAORadius->setValue((float)val / 100000.f);
 }
 
 void BasicGLWindow::keyPressEvent(QKeyEvent * event)

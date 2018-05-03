@@ -34,6 +34,7 @@ void SLOT_UnloadTexture();
 void SLOT_LoadTexture2();
 void SLOT_UnloadTexture2();
 void SLOT_ChangedSSAORadius(double val);
+void SLOT_ChangedSSAOSlider(int val);
 
 signals:
 
