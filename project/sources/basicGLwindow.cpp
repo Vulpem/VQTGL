@@ -441,27 +441,81 @@ void BasicGLWindow::initRaytracingGUI()
 	m_ui.qRayTracingView->show();
 }
 
+glm::vec3 BasicGLWindow::traceRay(const glm::vec3 & rayOrig, const glm::vec3 & rayDir, const std::vector<Sphere>& spheres, const int & depth)
+{
+    std::vector<Sphere> lights;
+    auto it = spheres.begin();
+    while (it != spheres.end())
+    {
+        it = std::find_if(it, spheres.end(), [=](const Sphere& s) { return s.isLight(); });
+        if ((it != spheres.end()))
+        {
+            lights.push_back(*it);
+            it++;
+        }
+    }
+    return traceRay(rayOrig, rayDir, spheres, depth, lights);
+}
+
 glm::vec3 BasicGLWindow::traceRay(
 	const glm::vec3 &rayOrig,
 	const glm::vec3 &rayDir,
 	const std::vector<Sphere> &spheres,
-	const int &depth)
+	const int &depth,
+    std::vector<Sphere> &lights,
+    float epsilon)
 {
-	glm::vec3 color = glm::vec3(1.f, 0.f, 1.f);
-	Intersection hit = intersection(rayOrig, rayDir, spheres);
+    glm::vec3 origin = rayOrig;
+    if (epsilon > 0.f)
+    {
+        origin += glm::normalize(rayDir) * epsilon;
+    }
+
+	glm::vec3 color = glm::vec3(0.53f, 0.8f, 1.f);
+	Intersection hit = intersection(origin, rayDir, spheres);
 
 	if (hit.intersected)
 	{
-		color = hit.colorHit;
+        Sphere& sp = *hit.object;
+        glm::vec3 reflectionColor = glm::vec3(1.f,1.f,1.f);
+        glm::vec3 refractionColor = glm::vec3(1.f, 1.f, 1.f);
 
-        glm::vec3 lightPos = glm::vec3(10, 10, -10);
-        const glm::vec3 LightRayDir = glm::normalize(lightPos - hit.posHit);
-		Intersection lightHit = intersection(hit.posHit, LightRayDir, spheres, 0.25f);
-		//TODO do stuff
-		if (lightHit.intersected)
-		{
-			color *= 0.3f;
-		}
+        if (sp.isLight())
+        {
+            return sp.getLightColor();
+        }
+
+        
+        if (depth < m_ui.nBounces->value() - 1)
+        {
+            if (sp.reflectsLight())
+            {
+               reflectionColor = traceRay(hit.posHit, hit.normalHit, spheres, depth + 1, lights, 0.01f);
+            }
+            if (sp.refractsLight())
+            {
+                glm::vec3 dir = -hit.normalHit;
+                refractionColor = traceRay(hit.posHit, dir, spheres, depth + 1, lights, 0.01f);
+                //reflectionColor = color;
+            }
+        }
+
+        color = blendReflRefrColors(&sp, rayDir, hit.normalHit, reflectionColor, refractionColor);
+
+        if (sp.isLight() == false)
+        {
+            float strength = 1.f;
+            for (int n = 0; n < lights.size(); n++)
+            {
+                const glm::vec3 LightRayDir = glm::normalize(lights[n].getCenter() - hit.posHit);
+                Intersection lightHit = intersection(hit.posHit, LightRayDir, spheres, 0.01f);
+                if (lightHit.intersected && lightHit.object->isLight() == false)
+                {
+                    strength *= (0.3f * lights.size());
+                }
+            }
+            color *= strength;
+        }
 	}
 	return color;
 }
@@ -510,15 +564,13 @@ BasicGLWindow::Intersection BasicGLWindow::intersection(
 		ret.posHit = rayOrig + rayDir * ret.distHit;
 		ret.normalHit = ret.posHit - sphere.getCenter();
 		ret.normalHit = glm::normalize(ret.normalHit);
+        ret.object = (Sphere*)&sphere;
 
 		// If the normal and the view direction are not opposite to each other
 		// reverse the normal direction. That also means we are inside the sphere so set
 		// the inside bool to true.
-        //TODO
-        ret.isInside = false;
-
 		float dotProd = glm::dot(rayDir, ret.normalHit);
-
+        ret.isInside = false;
 		if (dotProd > 0) {
 			ret.normalHit = -ret.normalHit;
 			ret.isInside = true;
@@ -539,6 +591,5 @@ glm::vec3 BasicGLWindow::blendReflRefrColors(
 	float facingRatio = -glm::dot(raydir, normalHit);
 	float fresnel = 0.5f + pow(1 - facingRatio, 3) * 0.5;
 
-	glm::vec3 blendedColor = (reflColor * fresnel + refrColor * (1 - fresnel) * sphere->transparencyFactor())*sphere->getSurfaceColor();
-	return blendedColor;
+	return (reflColor * fresnel + refrColor * (1 - fresnel) * sphere->transparencyFactor())*sphere->getSurfaceColor();
 }

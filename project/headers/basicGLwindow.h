@@ -93,6 +93,7 @@ private:
 		glm::vec3 normalHit = glm::vec3(0.f, 0.f, 0.f);
 		glm::vec3 colorHit = glm::vec3(0.f, 0.f, 0.f);
 		bool isInside = false;
+        Sphere* object = nullptr;
 	};
 
 	void initRaytracingGUI();
@@ -100,11 +101,19 @@ private:
 	void render(const std::vector<Sphere> &spheres);
     void displayImage(const QImage& image);
 
-	glm::vec3 traceRay(
-		const glm::vec3 &rayOrig,
-		const glm::vec3 &rayDir,
-		const std::vector<Sphere> &spheres,
-		const int &depth);
+    glm::vec3 traceRay(
+        const glm::vec3 &rayOrig,
+        const glm::vec3 &rayDir,
+        const std::vector<Sphere> &spheres,
+        const int &depth);
+
+    glm::vec3 traceRay(
+        const glm::vec3 &rayOrig,
+        const glm::vec3 &rayDir,
+        const std::vector<Sphere> &spheres,
+        const int &depth,
+        std::vector<Sphere> &lights,
+        float epsilon = 0.f);
 
 	Intersection intersection(
 		const glm::vec3 &rayOrig,
