@@ -490,13 +490,14 @@ glm::vec3 BasicGLWindow::traceRay(
         {
             if (sp.reflectsLight())
             {
-               reflectionColor = traceRay(hit.posHit, hit.normalHit, spheres, depth + 1, lights, 0.01f);
+               const glm::vec3 reflectionDir = rayDir - glm::dot(2.f * rayDir, hit.normalHit) * hit.normalHit;
+               reflectionColor = traceRay(hit.posHit, reflectionDir, spheres, depth + 1, lights, 0.01f);
             }
             if (sp.refractsLight())
             {
                 glm::vec3 dir = -hit.normalHit;
                 refractionColor = traceRay(hit.posHit, dir, spheres, depth + 1, lights, 0.01f);
-                //reflectionColor = color;
+                refractionColor = glm::vec3(1.f,1.f,1.f);
             }
         }
 
