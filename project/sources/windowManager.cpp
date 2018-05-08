@@ -2,8 +2,7 @@
 #include "windowManager.h"
 #include "helloQT.h"
 #include "basicGLwindow.h"
-#include "phongwindow.h"
-#include "texturingwindow.h"
+#include "raytracingwindow.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -80,14 +79,10 @@ void WindowManager::AddWindow(WindowTypes win)
     {
     case WindowTypes::Hello_QT:
         window = new HelloQT(); break;
-    case WindowTypes::Basic_Window:
-        window = new BasicWindow(); break;
     case WindowTypes::Basic_GL:
         window = new BasicGLWindow(); break;
-	case WindowTypes::Patri_Window:
-		window = new PhongWindow(); break;
-	case WindowTypes::Texturing_Window:
-		window = new TexturingWindow(); break;
+	case WindowTypes::Raytracing:
+		window = new RayTracingWindow(); break;
     }
 
     if (window != nullptr)

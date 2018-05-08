@@ -52,6 +52,7 @@
 #include "mainwindow.h"
 #include "helloQT.h"
 #include "basicGLwindow.h"
+
 #include "windowManager.h"
 #include <QMenuBar>
 #include <QMenu>
@@ -62,28 +63,22 @@
 MainWindow::MainWindow()
 {
 	QMenuBar *menuBar = new QMenuBar;
-	QMenu *menuWindow = menuBar->addMenu(tr("&Window"));
-	QMenu *addMenu = menuWindow->addMenu(tr("Add window"));
+	QMenu *menuWindow = menuBar->addMenu(tr("&Add window"));
 
 	QAction *helloQT = new QAction(menuWindow);
 	helloQT->setText(tr("Hello QT"));
-	addMenu->addAction(helloQT);
+	menuWindow->addAction(helloQT);
 	connect(helloQT, &QAction::triggered, this, &MainWindow::AddHelloQT);
 
 	QAction *basicWindow = new QAction(menuWindow);
-	basicWindow->setText(tr("Basic Window"));
-	addMenu->addAction(basicWindow);
+	basicWindow->setText(tr("SSAO window"));
+	menuWindow->addAction(basicWindow);
 	connect(basicWindow, &QAction::triggered, this, &MainWindow::AddGLWindow);
 
-	QAction *patriWindow = new QAction(menuWindow);
-	patriWindow->setText(tr("Patricio Window"));
-	addMenu->addAction(patriWindow);
-	connect(patriWindow, &QAction::triggered, this, &MainWindow::AddPatriWindow);
-
 	QAction *texturingWindow = new QAction(menuWindow);
-	texturingWindow->setText(tr("Texturing Window"));
-	addMenu->addAction(texturingWindow);
-	connect(texturingWindow, &QAction::triggered, this, &MainWindow::AddTexturingWindow);
+	texturingWindow->setText(tr("Raytracing Window"));
+	menuWindow->addAction(texturingWindow);
+	connect(texturingWindow, &QAction::triggered, this, &MainWindow::AddRaytracingWindow);
 
 	setMenuBar(menuBar);
     manager = new WindowManager();
@@ -107,12 +102,7 @@ void MainWindow::AddGLWindow()
 	manager->AddWindow(WindowTypes::Basic_GL);
 }
 
-void MainWindow::AddPatriWindow()
+void MainWindow::AddRaytracingWindow()
 {
-	manager->AddWindow(WindowTypes::Patri_Window);
-}
-
-void MainWindow::AddTexturingWindow()
-{
-	manager->AddWindow(WindowTypes::Texturing_Window);
+	manager->AddWindow(WindowTypes::Raytracing);
 }
