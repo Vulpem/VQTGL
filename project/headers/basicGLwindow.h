@@ -85,7 +85,19 @@ private:
 	void InitSSAOGUI();
 
 	// Ray Tracing -----------------------------------------------------------
+	struct Intersection
+	{
+		bool intersected = false;
+		float distHit = FLT_MAX;
+		glm::vec3 posHit = glm::vec3(0.f,0.f,0.f);
+		glm::vec3 normalHit = glm::vec3(0.f, 0.f, 0.f);
+		glm::vec3 colorHit = glm::vec3(0.f, 0.f, 0.f);
+		bool isInside = false;
+	};
+
 	void initRaytracingGUI();
+
+	void render(const std::vector<Sphere> &spheres);
 
 	glm::vec3 traceRay(
 		const glm::vec3 &rayOrig,
@@ -93,17 +105,10 @@ private:
 		const std::vector<Sphere> &spheres,
 		const int &depth);
 
-	void render(const std::vector<Sphere> &spheres);
-
-	bool intersection(
+	Intersection intersection(
 		const Sphere &sphere,
 		const glm::vec3 &rayOrig,
-		const glm::vec3 &rayDir,
-		float &distHit,
-		glm::vec3 &posHit,
-		glm::vec3 &normalHit,
-		glm::vec3 &colorHit,
-		bool &isInside);
+		const glm::vec3 &rayDir);
 
 	glm::vec3 blendReflRefrColors(
 		const Sphere* sphere,

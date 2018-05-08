@@ -351,34 +351,6 @@ void BasicGLWindow::InitSSAOGUI()
 	connect(m_ui.qDeleteTex2Button, &QPushButton::clicked, this, &BasicGLWindow::SLOT_UnloadTexture2);
 }
 
-void BasicGLWindow::initRaytracingGUI()
-{
-	m_width = m_ui.qRayTracingView->width() - 2;
-	m_height = m_ui.qRayTracingView->height() - 2;
-	background_color = glm::vec3(1.0f, 1.0f, 1.0f);
-
-	connect(m_ui.qRenderButton, SIGNAL(clicked()), this, SLOT(SLOT_raytraceScene()));
-	connect(this, SIGNAL(renderingProgress(int)), m_ui.qProgressBar, SLOT(setValue(int)));
-
-	QGraphicsScene *scene = new QGraphicsScene();
-	scene->clear();
-	scene->addText("(Empty)");
-
-	m_ui.qRayTracingView->resetMatrix();
-	m_ui.qRayTracingView->setScene(scene);
-	m_ui.qRayTracingView->show();
-}
-
-glm::vec3 BasicGLWindow::traceRay(
-	const glm::vec3 &rayOrig,
-	const glm::vec3 &rayDir,
-	const std::vector<Sphere> &spheres,
-	const int &depth)
-{
-
-	// TO DO
-	return glm::vec3(1.f, 0.f, 1.f);
-}
 
 void BasicGLWindow::render(const std::vector<Sphere> &spheres)
 {
@@ -447,46 +419,82 @@ void BasicGLWindow::SLOT_raytraceScene() {
 	render(spheres);
 }
 
-bool BasicGLWindow::intersection(
-	const Sphere &sphere,
+void BasicGLWindow::initRaytracingGUI()
+{
+	m_width = m_ui.qRayTracingView->width() - 2;
+	m_height = m_ui.qRayTracingView->height() - 2;
+	background_color = glm::vec3(1.0f, 1.0f, 1.0f);
+
+	connect(m_ui.qRenderButton, SIGNAL(clicked()), this, SLOT(SLOT_raytraceScene()));
+	connect(this, SIGNAL(renderingProgress(int)), m_ui.qProgressBar, SLOT(setValue(int)));
+
+	QGraphicsScene *scene = new QGraphicsScene();
+	scene->clear();
+	scene->addText("(Empty)");
+
+	m_ui.qRayTracingView->resetMatrix();
+	m_ui.qRayTracingView->setScene(scene);
+	m_ui.qRayTracingView->show();
+}
+
+glm::vec3 BasicGLWindow::traceRay(
 	const glm::vec3 &rayOrig,
 	const glm::vec3 &rayDir,
-	float &distHit,
-	glm::vec3 &posHit,
-	glm::vec3 &normalHit,
-	glm::vec3 &colorHit,
-	bool &isInside) {
+	const std::vector<Sphere> &spheres,
+	const int &depth)
+{
+	glm::vec3 color = glm::vec3(1.f, 0.f, 1.f);
+	Intersection hit;
+	std::for_each(spheres.begin(), spheres.end(), [=, &hit](const Sphere& s)
+	{
+		Intersection newHit;
+		newHit = intersection(s, rayOrig, rayDir);
+		if(newHit.intersected && newHit.distHit < hit.distHit) { hit = newHit; }
+	} );
+
+	if (hit.intersected)
+	{
+		color = hit.colorHit;
+	}
+	// TO DO
+	return color;
+}
+
+BasicGLWindow::Intersection BasicGLWindow::intersection(
+	const Sphere &sphere,
+	const glm::vec3 &rayOrig,
+	const glm::vec3 &rayDir) {
 
 	float inter0 = INFINITY;
 	float inter1 = INFINITY;
 
-	if (sphere.intersect(rayOrig, rayDir, inter0, inter1)) {
+	Intersection ret;
+
+	if (sphere.intersect(rayOrig, rayDir, inter0, inter1))
+	{
 		if (inter0 < 0)
 			inter0 = inter1;
 
-		distHit = inter0;
-		posHit = rayOrig + rayDir * inter0;
-		normalHit = posHit - sphere.getCenter();
-		normalHit = glm::normalize(normalHit);
+		ret.intersected = true;
+		ret.distHit = inter0;
+		ret.posHit = rayOrig + rayDir * inter0;
+		ret.normalHit = ret.posHit - sphere.getCenter();
+		ret.normalHit = glm::normalize(ret.normalHit);
 
 		// If the normal and the view direction are not opposite to each other
 		// reverse the normal direction. That also means we are inside the sphere so set
 		// the inside bool to true.
-		isInside = false;
-		float dotProd = glm::dot(rayDir, normalHit);
+		ret.isInside = false;
+		float dotProd = glm::dot(rayDir, ret.normalHit);
 
 		if (dotProd > 0) {
-			normalHit = -normalHit;
-			isInside = true;
+			ret.normalHit = -ret.normalHit;
+			ret.isInside = true;
 		}
 
-		colorHit = sphere.getSurfaceColor();
-
-		return true;
+		ret.colorHit = sphere.getSurfaceColor();
 	}
-	else {
-		return false;
-	}
+	return ret;
 }
 
 glm::vec3 BasicGLWindow::blendReflRefrColors(
