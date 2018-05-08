@@ -444,40 +444,64 @@ glm::vec3 BasicGLWindow::traceRay(
 	const int &depth)
 {
 	glm::vec3 color = glm::vec3(1.f, 0.f, 1.f);
-	Intersection hit;
-	std::for_each(spheres.begin(), spheres.end(), [=, &hit](const Sphere& s)
-	{
-		Intersection newHit;
-		newHit = intersection(s, rayOrig, rayDir);
-		if(newHit.intersected && newHit.distHit < hit.distHit) { hit = newHit; }
-	} );
+	Intersection hit = intersection(rayOrig, rayDir, spheres);
 
 	if (hit.intersected)
 	{
 		color = hit.colorHit;
+
+
+		const glm::vec3 LightRayDir = hit.posHit - glm::vec3(10, 10, -10);
+		Intersection lightHit = intersection(hit.posHit, LightRayDir, spheres, 0.25f);
+		//TODO do stuff
+		if (lightHit.intersected)
+		{
+			color *= 0.3f;
+		}
 	}
-	// TO DO
 	return color;
 }
 
 BasicGLWindow::Intersection BasicGLWindow::intersection(
+		const glm::vec3 & rayOrig,
+		const glm::vec3 & rayDir,
+		const std::vector<Sphere>& spheres,
+		float epsilon)
+{
+	Intersection hit;
+	std::for_each(spheres.begin(), spheres.end(), [=, &hit](const Sphere& s)
+	{
+		Intersection newHit;
+		newHit = intersection(s, rayOrig, rayDir, epsilon);
+		if (newHit.intersected && newHit.distHit < hit.distHit) { hit = newHit; }
+	});
+	return hit;
+}
+
+BasicGLWindow::Intersection BasicGLWindow::intersection(
 	const Sphere &sphere,
-	const glm::vec3 &rayOrig,
-	const glm::vec3 &rayDir) {
+	const glm::vec3& rayOrig,
+	const glm::vec3 &rayDir,
+	float epsilon) {
 
 	float inter0 = INFINITY;
 	float inter1 = INFINITY;
 
 	Intersection ret;
 
-	if (sphere.intersect(rayOrig, rayDir, inter0, inter1))
+	glm::vec3 d = glm::normalize(rayDir);
+	d *= epsilon;
+	glm::vec3 origin = rayOrig + d;
+
+	if (sphere.intersect(origin, rayDir, inter0, inter1))
 	{
-		if (inter0 < 0)
+		if (inter0 < 0) {
 			inter0 = inter1;
+		}
 
 		ret.intersected = true;
-		ret.distHit = inter0;
-		ret.posHit = rayOrig + rayDir * inter0;
+		ret.distHit = inter0 + epsilon;
+		ret.posHit = rayOrig + rayDir * ret.distHit;
 		ret.normalHit = ret.posHit - sphere.getCenter();
 		ret.normalHit = glm::normalize(ret.normalHit);
 

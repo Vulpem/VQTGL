@@ -106,9 +106,16 @@ private:
 		const int &depth);
 
 	Intersection intersection(
-		const Sphere &sphere,
 		const glm::vec3 &rayOrig,
-		const glm::vec3 &rayDir);
+		const glm::vec3 &rayDir,
+		const std::vector<Sphere> &spheres,
+		float epsilon = 0.f);
+
+	Intersection intersection(
+		const Sphere &sphere,
+		const glm::vec3& rayOrig,
+		const glm::vec3 &rayDir,
+		float epsilon = 0.f);
 
 	glm::vec3 blendReflRefrColors(
 		const Sphere* sphere,
