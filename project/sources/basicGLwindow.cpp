@@ -354,51 +354,55 @@ void BasicGLWindow::InitSSAOGUI()
 
 void BasicGLWindow::render(const std::vector<Sphere> &spheres)
 {
-	m_width = m_ui.qRayTracingView->width() - 2;
-	m_height = m_ui.qRayTracingView->height() - 2;
+    m_width = m_ui.qRayTracingView->width() - 2;
+    m_height = m_ui.qRayTracingView->height() - 2;
 
-	glm::vec3 *image = new glm::vec3[m_width * m_height], *pixel = image;
-	float invWidth = 1 / float(m_width), invHeight = 1 / float(m_height);
-	float fov = 30, aspectratio = m_width / float(m_height);
-	float angle = tan(PI * 0.5 * fov / 180.);
+    glm::vec3 *image = new glm::vec3[m_width * m_height];
 
-	int progress = 0;
-	int numPixels = m_width * m_height;
+    float invWidth = 1 / float(m_width), invHeight = 1 / float(m_height);
+    float fov = 30, aspectratio = m_width / float(m_height);
+    float angle = tan(PI * 0.5 * fov / 180.);
 
-	// Trace rays
-	for (unsigned y = 0; y < m_height; ++y) {
-		for (unsigned x = 0; x < m_width; ++x, ++pixel) {
-			float xx = (2 * ((x + 0.5) * invWidth) - 1) * angle * aspectratio;
-			float yy = (1 - 2 * ((y + 0.5) * invHeight)) * angle;
-			glm::vec3 rayDir(xx, yy, -1);
-			rayDir = glm::normalize(rayDir);
-			glm::vec3 rayOrig(0.0f, 0.0f, 0.0f);
-			*pixel = traceRay(rayOrig, rayDir, spheres, 0);
+    int progress = 0;
+    int numPixels = m_width * m_height;
 
-			progress++;
-			emit renderingProgress((int)((float)progress / (float)numPixels * 100));
-		}
-	}
+    QImage img(m_width, m_height, QImage::Format_ARGB32);
 
-	QImage img(m_width, m_height, QImage::Format_ARGB32);
+    // Trace rays
+    for (unsigned y = 0; y < m_height; ++y) {
+        for (unsigned x = 0; x < m_width; ++x) {
+            const int pix = x + y * m_width;
+            float xx = (2 * ((x + 0.5) * invWidth) - 1) * angle * aspectratio;
+            float yy = (1 - 2 * ((y + 0.5) * invHeight)) * angle;
+            glm::vec3 rayDir(xx, yy, -1);
+            rayDir = glm::normalize(rayDir);
+            glm::vec3 rayOrig(0.0f, 0.0f, 0.0f);
+            image[pix] = traceRay(rayOrig, rayDir, spheres, 0);
 
-	int id_img = 0;
-	for (unsigned j = 0; j < m_height; ++j) {
-		for (unsigned i = 0; i < m_width; ++i) {
-			QColor col(MIN(255, image[id_img].x * 255),
-				MIN(255, image[id_img].y * 255),
-				MIN(255, image[id_img].z * 255));
-			img.setPixelColor(i, j, col);
-			id_img++;
-		}
-	}
+            progress++;
 
-	QGraphicsScene* imgView = new QGraphicsScene();
-	imgView->addPixmap(QPixmap::fromImage(img));
-	m_ui.qRayTracingView->setScene(imgView);
-	m_ui.qRayTracingView->show();
+            QColor col(MIN(255, image[pix].x * 255),
+                MIN(255, image[pix].y * 255),
+                MIN(255, image[pix].z * 255));
+            img.setPixelColor(x, y, col);
 
-	delete[] image;
+            //displayImage(img);
+            emit renderingProgress((int)(((float)progress / (float)numPixels) * 100));
+        }
+        displayImage(img);
+    }
+
+    displayImage(img);
+
+    delete[] image;
+}
+
+void BasicGLWindow::displayImage(const QImage & image)
+{
+    QGraphicsScene* imgView = new QGraphicsScene();
+    imgView->addPixmap(QPixmap::fromImage(image));
+    m_ui.qRayTracingView->setScene(imgView);
+    m_ui.qRayTracingView->show();
 }
 
 void BasicGLWindow::SLOT_raytraceScene() {

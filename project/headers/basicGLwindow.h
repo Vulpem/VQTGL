@@ -98,6 +98,7 @@ private:
 	void initRaytracingGUI();
 
 	void render(const std::vector<Sphere> &spheres);
+    void displayImage(const QImage& image);
 
 	glm::vec3 traceRay(
 		const glm::vec3 &rayOrig,
