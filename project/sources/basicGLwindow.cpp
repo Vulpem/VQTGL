@@ -454,8 +454,8 @@ glm::vec3 BasicGLWindow::traceRay(
 	{
 		color = hit.colorHit;
 
-
-		const glm::vec3 LightRayDir = hit.posHit - glm::vec3(10, 10, -10);
+        glm::vec3 lightPos = glm::vec3(10, 10, -10);
+        const glm::vec3 LightRayDir = glm::normalize(lightPos - hit.posHit);
 		Intersection lightHit = intersection(hit.posHit, LightRayDir, spheres, 0.25f);
 		//TODO do stuff
 		if (lightHit.intersected)
@@ -493,9 +493,11 @@ BasicGLWindow::Intersection BasicGLWindow::intersection(
 
 	Intersection ret;
 
-	glm::vec3 d = glm::normalize(rayDir);
-	d *= epsilon;
-	glm::vec3 origin = rayOrig + d;
+    glm::vec3 origin = rayOrig;
+    if (epsilon > 0.f)
+    {
+        origin += glm::normalize(rayDir) * epsilon;
+    }
 
 	if (sphere.intersect(origin, rayDir, inter0, inter1))
 	{
@@ -512,7 +514,9 @@ BasicGLWindow::Intersection BasicGLWindow::intersection(
 		// If the normal and the view direction are not opposite to each other
 		// reverse the normal direction. That also means we are inside the sphere so set
 		// the inside bool to true.
-		ret.isInside = false;
+        //TODO
+        ret.isInside = false;
+
 		float dotProd = glm::dot(rayDir, ret.normalHit);
 
 		if (dotProd > 0) {
