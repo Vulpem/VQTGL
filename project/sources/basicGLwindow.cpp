@@ -495,9 +495,10 @@ glm::vec3 BasicGLWindow::traceRay(
             }
             if (sp.refractsLight())
             {
-                glm::vec3 dir = -hit.normalHit;
-                refractionColor = traceRay(hit.posHit, dir, spheres, depth + 1, lights, 0.01f);
-                refractionColor = glm::vec3(1.f,1.f,1.f);
+                //TODO to fix
+                glm::vec3 dir = (-hit.normalHit + rayDir) * 0.5f;
+                Intersection outterplane = intersection(hit.posHit, dir, spheres, 0.01f);
+                refractionColor = traceRay(outterplane.posHit, rayDir, spheres, depth + 1, lights, 0.01f);
             }
         }
 
