@@ -357,7 +357,7 @@ void BasicGLWindow::initRaytracingGUI()
 	m_height = m_ui.qRayTracingView->height() - 2;
 	background_color = glm::vec3(1.0f, 1.0f, 1.0f);
 
-	connect(m_ui.qRenderButton, SIGNAL(clicked()), this, SLOT(raytraceScene()));
+	connect(m_ui.qRenderButton, SIGNAL(clicked()), this, SLOT(SLOT_raytraceScene()));
 	connect(this, SIGNAL(renderingProgress(int)), m_ui.qProgressBar, SLOT(setValue(int)));
 
 	QGraphicsScene *scene = new QGraphicsScene();
@@ -375,7 +375,6 @@ glm::vec3 BasicGLWindow::traceRay(
 	const std::vector<Sphere> &spheres,
 	const int &depth)
 {
-
 
 	// TO DO
 	return glm::vec3(1.f, 0.f, 1.f);
@@ -445,8 +444,7 @@ void BasicGLWindow::SLOT_raytraceScene() {
 	spheres.push_back(Sphere(glm::vec3(-5.0f, 0.0f, -35.0f), 3, glm::vec3(0.5f, 0.5f, 0.5f), true, 0.0f, 0.0f));
 	spheres.push_back(Sphere(glm::vec3(-4.5f, -1.0f, -19.0f), 1.5f, glm::vec3(0.5f, 0.1f, 0.0f), true, 0.0f, 0.0f));
 
-	// UNCOMMENT THE NEXT LINE TO RENDER THE SCENE
-	// render(spheres);
+	render(spheres);
 }
 
 bool BasicGLWindow::intersection(
