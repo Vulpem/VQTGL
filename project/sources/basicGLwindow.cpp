@@ -352,7 +352,7 @@ void BasicGLWindow::InitSSAOGUI()
 }
 
 
-void BasicGLWindow::render(const std::vector<Sphere> &spheres)
+void BasicGLWindow::render(const std::vector<Shape&> &shapes)
 {
     m_width = m_ui.qRayTracingView->width() - 2;
     m_height = m_ui.qRayTracingView->height() - 2;
@@ -377,7 +377,7 @@ void BasicGLWindow::render(const std::vector<Sphere> &spheres)
             glm::vec3 rayDir(xx, yy, -1);
             rayDir = glm::normalize(rayDir);
             glm::vec3 rayOrig(0.0f, 0.0f, 0.0f);
-            image[pix] = traceRay(rayOrig, rayDir, spheres, 0);
+            image[pix] = traceRay(rayOrig, rayDir, shapes, 0);
 
             progress++;
 
@@ -406,21 +406,31 @@ void BasicGLWindow::displayImage(const QImage & image)
 }
 
 void BasicGLWindow::SLOT_raytraceScene() {
-	std::vector<Sphere> spheres;
+	std::vector<Shape&> shapes;
 
 	// Lights
-	spheres.push_back(Sphere(glm::vec3(10.0f, 20.0f, 0.0f), 2, glm::vec3(0.0f, 0.0f, 0.0f), false, 0.0f, 0.0f, 2.0f, glm::vec3(1.0f, 1.0f, 1.0f)));
-	spheres.push_back(Sphere(glm::vec3(-10.0f, 20.0f, 0.0f), 2, glm::vec3(0.0f, 0.0f, 0.0f), false, 0.0f, 0.0f, 2.0f, glm::vec3(1.0f, 1.0f, 1.0f)));
-	spheres.push_back(Sphere(glm::vec3(0.0f, 10.0f, 0.0f), 2, glm::vec3(0.0f, 0.0f, 0.0f), false, 0.0f, 0.0f, 2.0f, glm::vec3(1.0f, 1.0f, 1.0f)));
+	Sphere l1 = Sphere(glm::vec3(10.0f, 20.0f, 0.0f), 2, glm::vec3(0.0f, 0.0f, 0.0f), false, 0.0f, 0.0f, 2.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+	Sphere l2 = Sphere(glm::vec3(-10.0f, 20.0f, 0.0f), 2, glm::vec3(0.0f, 0.0f, 0.0f), false, 0.0f, 0.0f, 2.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+	Sphere l3 = Sphere(glm::vec3(0.0f, 10.0f, 0.0f), 2, glm::vec3(0.0f, 0.0f, 0.0f), false, 0.0f, 0.0f, 2.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+	shapes.push_back(l1);
+	shapes.push_back(l2);
+	shapes.push_back(l3);
 
 	// Spheres of the scene
-	spheres.push_back(Sphere(glm::vec3(0.0, -10004, -30), 10000, glm::vec3(0.0f, 0.2f, 0.5f), false, 0.0, 0.0));
-	spheres.push_back(Sphere(glm::vec3(0.0f, 0.0f, -20.0f), 2, glm::vec3(1.0f, 1.0f, 1.0f), true, 0.9f, 1.1f));
-	spheres.push_back(Sphere(glm::vec3(4.0f, 0.0f, -32.5f), 4, glm::vec3(0.0f, 0.5f, 0.0f), true, 0.0f, 0.0f));
-	spheres.push_back(Sphere(glm::vec3(-5.0f, 0.0f, -35.0f), 3, glm::vec3(0.5f, 0.5f, 0.5f), true, 0.0f, 0.0f));
-	spheres.push_back(Sphere(glm::vec3(-4.5f, -1.0f, -19.0f), 1.5f, glm::vec3(0.5f, 0.1f, 0.0f), true, 0.0f, 0.0f));
+	
+	Sphere s1 = Sphere(glm::vec3(0.0f, 0.0f, -20.0f), 2, glm::vec3(1.0f, 1.0f, 1.0f), true, 0.9f, 1.1f);
+	Sphere s2 = Sphere(glm::vec3(4.0f, 0.0f, -32.5f), 4, glm::vec3(0.0f, 0.5f, 0.0f), true, 0.0f, 0.0f);
+	Sphere s3 = Sphere(glm::vec3(-5.0f, 0.0f, -35.0f), 3, glm::vec3(0.5f, 0.5f, 0.5f), true, 0.0f, 0.0f);
+	Sphere s4 = Sphere(glm::vec3(-4.5f, -1.0f, -19.0f), 1.5f, glm::vec3(0.5f, 0.1f, 0.0f), true, 0.0f, 0.0f);
+	shapes.push_back(s1);
+	shapes.push_back(s2);
+	shapes.push_back(s3);
+	shapes.push_back(s4);
 
-	render(spheres);
+	HPlane p1 = HPlane(-4.f, glm::vec2(20.f, 20.f), glm::vec3(0.9f, 0.9f, 0.9f), glm::vec3(0.1f, 0.1f, 0.1f), false, 0.0, 0.0);
+	shapes.push_back(p1);
+
+	render(shapes);
 }
 
 void BasicGLWindow::initRaytracingGUI()
@@ -441,28 +451,28 @@ void BasicGLWindow::initRaytracingGUI()
 	m_ui.qRayTracingView->show();
 }
 
-glm::vec3 BasicGLWindow::traceRay(const glm::vec3 & rayOrig, const glm::vec3 & rayDir, const std::vector<Sphere>& spheres, const int & depth)
+glm::vec3 BasicGLWindow::traceRay(const glm::vec3 & rayOrig, const glm::vec3 & rayDir, const std::vector<Shape&>& shapes, const int & depth)
 {
-    std::vector<Sphere> lights;
-    auto it = spheres.begin();
-    while (it != spheres.end())
+    std::vector<Sphere&> lights;
+    auto it = shapes.begin();
+    while (it != shapes.end())
     {
-        it = std::find_if(it, spheres.end(), [=](const Sphere& s) { return s.isLight(); });
-        if ((it != spheres.end()))
+        it = std::find_if(it, shapes.end(), [=](const Sphere& s) { return s.isLight(); });
+        if ((it != shapes.end()))
         {
-            lights.push_back(*it);
+            lights.push_back((Sphere&)*it);
             it++;
         }
     }
-    return traceRay(rayOrig, rayDir, spheres, depth, lights);
+    return traceRay(rayOrig, rayDir, shapes, depth, lights);
 }
 
 glm::vec3 BasicGLWindow::traceRay(
 	const glm::vec3 &rayOrig,
 	const glm::vec3 &rayDir,
-	const std::vector<Sphere> &spheres,
+	const std::vector<Shape&> &shapes,
 	const int &depth,
-    std::vector<Sphere> &lights,
+    std::vector<Sphere&> &lights,
     float epsilon)
 {
     glm::vec3 origin = rayOrig;
@@ -472,12 +482,12 @@ glm::vec3 BasicGLWindow::traceRay(
     }
 
 	glm::vec3 color = glm::vec3(0.53f, 0.8f, 1.f);
-	Intersection hit = intersection(origin, rayDir, spheres);
+	Intersection hit = intersection(origin, rayDir, shapes);
 
 	if (hit.intersected)
 	{
-        Sphere& sp = *hit.object;
-        glm::vec3 reflectionColor = glm::vec3(1.f,1.f,1.f);
+        const Shape& sp = *hit.object;
+		glm::vec3 reflectionColor = glm::vec3(1.f, 1.f, 1.f);
         glm::vec3 refractionColor = glm::vec3(1.f, 1.f, 1.f);
 
         if (sp.isLight())
@@ -491,100 +501,55 @@ glm::vec3 BasicGLWindow::traceRay(
             if (sp.reflectsLight())
             {
                const glm::vec3 reflectionDir = rayDir - glm::dot(2.f * rayDir, hit.normalHit) * hit.normalHit;
-               reflectionColor = traceRay(hit.posHit, reflectionDir, spheres, depth + 1, lights, 0.01f);
+               reflectionColor = traceRay(hit.posHit, reflectionDir, shapes, depth + 1, lights, 0.01f);
             }
             if (sp.refractsLight())
             {
                 //TODO to fix
                 glm::vec3 dir = (-hit.normalHit + rayDir) * 0.5f;
-                Intersection outterplane = intersection(hit.posHit, dir, spheres, 0.01f);
-                refractionColor = traceRay(outterplane.posHit, rayDir, spheres, depth + 1, lights, 0.01f);
+                Intersection outterplane = intersection(hit.posHit, dir, shapes, 0.01f);
+                refractionColor = traceRay(outterplane.posHit, rayDir, shapes, depth + 1, lights, 0.01f);
             }
         }
 
-        color = blendReflRefrColors(&sp, rayDir, hit.normalHit, reflectionColor, refractionColor);
+        color = blendReflRefrColors(sp, rayDir, hit.normalHit, reflectionColor, refractionColor);
 
         if (sp.isLight() == false)
         {
             float strength = 1.f;
-            for (int n = 0; n < lights.size(); n++)
-            {
-                const glm::vec3 LightRayDir = glm::normalize(lights[n].getCenter() - hit.posHit);
-                Intersection lightHit = intersection(hit.posHit, LightRayDir, spheres, 0.01f);
-                if (lightHit.intersected && lightHit.object->isLight() == false)
-                {
-                    strength *= (0.3f * lights.size());
-                }
-            }
+			std::for_each(lights.begin(), lights.end(), [=, &strength](const Sphere& light)
+			{
+				const glm::vec3 LightRayDir = glm::normalize(light.getCenter() - hit.posHit);
+				Intersection lightHit = intersection(hit.posHit, LightRayDir, shapes, 0.01f);
+				if (lightHit.intersected && lightHit.object->isLight() == false)
+				{
+					strength *= (0.3f * lights.size());
+				}
+			});
             color *= strength;
         }
 	}
 	return color;
 }
 
-BasicGLWindow::Intersection BasicGLWindow::intersection(
+Intersection BasicGLWindow::intersection(
 		const glm::vec3 & rayOrig,
 		const glm::vec3 & rayDir,
-		const std::vector<Sphere>& spheres,
+		const std::vector<Shape&>& shapes,
 		float epsilon)
 {
 	Intersection hit;
-	std::for_each(spheres.begin(), spheres.end(), [=, &hit](const Sphere& s)
+	std::for_each(shapes.begin(), shapes.end(), [=, &hit](Shape& s)
 	{
 		Intersection newHit;
-		newHit = intersection(s, rayOrig, rayDir, epsilon);
+		newHit = s.intersection(rayOrig, rayDir, epsilon);
 		if (newHit.intersected && newHit.distHit < hit.distHit) { hit = newHit; }
 	});
 	return hit;
 }
 
-BasicGLWindow::Intersection BasicGLWindow::intersection(
-	const Sphere &sphere,
-	const glm::vec3& rayOrig,
-	const glm::vec3 &rayDir,
-	float epsilon) {
-
-	float inter0 = INFINITY;
-	float inter1 = INFINITY;
-
-	Intersection ret;
-
-    glm::vec3 origin = rayOrig;
-    if (epsilon > 0.f)
-    {
-        origin += glm::normalize(rayDir) * epsilon;
-    }
-
-	if (sphere.intersect(origin, rayDir, inter0, inter1))
-	{
-		if (inter0 < 0) {
-			inter0 = inter1;
-		}
-
-		ret.intersected = true;
-		ret.distHit = inter0 + epsilon;
-		ret.posHit = rayOrig + rayDir * ret.distHit;
-		ret.normalHit = ret.posHit - sphere.getCenter();
-		ret.normalHit = glm::normalize(ret.normalHit);
-        ret.object = (Sphere*)&sphere;
-
-		// If the normal and the view direction are not opposite to each other
-		// reverse the normal direction. That also means we are inside the sphere so set
-		// the inside bool to true.
-		float dotProd = glm::dot(rayDir, ret.normalHit);
-        ret.isInside = false;
-		if (dotProd > 0) {
-			ret.normalHit = -ret.normalHit;
-			ret.isInside = true;
-		}
-
-		ret.colorHit = sphere.getSurfaceColor();
-	}
-	return ret;
-}
-
 glm::vec3 BasicGLWindow::blendReflRefrColors(
-	const Sphere* sphere,
+	const Shape& shape,
 	const glm::vec3 &raydir,
 	const glm::vec3 &normalHit,
 	const glm::vec3 &reflColor,
@@ -593,5 +558,5 @@ glm::vec3 BasicGLWindow::blendReflRefrColors(
 	float facingRatio = -glm::dot(raydir, normalHit);
 	float fresnel = 0.5f + pow(1 - facingRatio, 3) * 0.5;
 
-	return (reflColor * fresnel + refrColor * (1 - fresnel) * sphere->transparencyFactor())*sphere->getSurfaceColor();
+	return (reflColor * fresnel + refrColor * (1 - fresnel) * shape.transparencyFactor())*shape.getSurfaceColor();
 }

@@ -8,6 +8,8 @@
 #include "glm\glm.hpp"
 #include "definitions.h"
 #include "sphere.h"
+#include "horizontalPlane.h"
+#include "intersection.h"
 
 class MainWindow;
 class BasicGLWidget;
@@ -85,50 +87,34 @@ private:
 	void InitSSAOGUI();
 
 	// Ray Tracing -----------------------------------------------------------
-	struct Intersection
-	{
-		bool intersected = false;
-		float distHit = FLT_MAX;
-		glm::vec3 posHit = glm::vec3(0.f,0.f,0.f);
-		glm::vec3 normalHit = glm::vec3(0.f, 0.f, 0.f);
-		glm::vec3 colorHit = glm::vec3(0.f, 0.f, 0.f);
-		bool isInside = false;
-        Sphere* object = nullptr;
-	};
 
 	void initRaytracingGUI();
 
-	void render(const std::vector<Sphere> &spheres);
+	void render(const std::vector<Shape&> &shapes);
     void displayImage(const QImage& image);
 
     glm::vec3 traceRay(
         const glm::vec3 &rayOrig,
         const glm::vec3 &rayDir,
-        const std::vector<Sphere> &spheres,
+        const std::vector<Shape&> &shapes,
         const int &depth);
 
     glm::vec3 traceRay(
         const glm::vec3 &rayOrig,
         const glm::vec3 &rayDir,
-        const std::vector<Sphere> &spheres,
+        const std::vector<Shape&> &shapes,
         const int &depth,
-        std::vector<Sphere> &lights,
+        std::vector<Sphere&> &lights,
         float epsilon = 0.f);
 
-	Intersection intersection(
-		const glm::vec3 &rayOrig,
-		const glm::vec3 &rayDir,
-		const std::vector<Sphere> &spheres,
-		float epsilon = 0.f);
-
-	Intersection intersection(
-		const Sphere &sphere,
-		const glm::vec3& rayOrig,
-		const glm::vec3 &rayDir,
+	Intersection BasicGLWindow::intersection(
+		const glm::vec3 & rayOrig,
+		const glm::vec3 & rayDir,
+		const std::vector<Shape&>& shapes,
 		float epsilon = 0.f);
 
 	glm::vec3 blendReflRefrColors(
-		const Sphere* sphere,
+		const Shape& shape,
 		const glm::vec3 &rayDir,
 		const glm::vec3 &normalHit,
 		const glm::vec3 &reflColor,

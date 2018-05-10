@@ -75,11 +75,6 @@ MainWindow::MainWindow()
 	menuWindow->addAction(basicWindow);
 	connect(basicWindow, &QAction::triggered, this, &MainWindow::AddGLWindow);
 
-	QAction *texturingWindow = new QAction(menuWindow);
-	texturingWindow->setText(tr("Raytracing Window"));
-	menuWindow->addAction(texturingWindow);
-	connect(texturingWindow, &QAction::triggered, this, &MainWindow::AddRaytracingWindow);
-
 	setMenuBar(menuBar);
     manager = new WindowManager();
 	setCentralWidget(manager);
@@ -100,9 +95,4 @@ void MainWindow::closeEvent(QCloseEvent * event)
 void MainWindow::AddGLWindow()
 {
 	manager->AddWindow(WindowTypes::Basic_GL);
-}
-
-void MainWindow::AddRaytracingWindow()
-{
-	manager->AddWindow(WindowTypes::Raytracing);
 }

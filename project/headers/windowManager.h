@@ -14,8 +14,7 @@ class QGroupBox;
 enum class WindowTypes
 {
     Hello_QT = 0,
-    Basic_GL,
-	Raytracing
+    Basic_GL
 };
 
 class ListedWindow : public QWidget
