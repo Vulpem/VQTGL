@@ -69,7 +69,6 @@ public:
 	private slots:
 	void AddHelloQT();
 	void AddGLWindow();
-	void AddRaytracingWindow();
 
 private:
     WindowManager * manager;

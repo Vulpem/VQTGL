@@ -10,8 +10,7 @@ HEADERS       = project/headers/glwidget.h \
                 project/headers/basicGLwindow.h \
                 project/headers/model.h \
                 project/headers/definitions.h \
-				project/headers/raytracingwindow.h \
-				project/headers/sphere.h
+		project/headers/sphere.h
 
 SOURCES       = project/main.cpp \
                 project/sources/glwidget.cpp \
@@ -22,12 +21,10 @@ SOURCES       = project/main.cpp \
                 project/sources/basicwindow.cpp \
                 project/sources/windowManager.cpp \
                 project/sources/basicGLwindow.cpp \
-                project/sources/model.cpp \
-				project/sources/raytracingwindow.cpp
+                project/sources/model.cpp
 
 FORMS         = project/forms/basicwindow.ui \
-		        project/forms/BasicGLWindow.ui \
-				project/forms/raytracingwindow.ui
+		project/forms/BasicGLWindow.ui
 
 QT           += widgets
 QT           += opengl
