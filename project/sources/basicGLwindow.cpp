@@ -475,7 +475,7 @@ glm::vec3 BasicGLWindow::traceRay(
 		origin += glm::normalize(rayDir) * epsilon;
 	}
 
-    const glm::vec3 backgroundColor = glm::vec3(0.988f, 0.764f, 0.639f);//glm::vec3(0.53f, 0.8f, 1.f);
+    const glm::vec3 backgroundColor = glm::vec3(0.9f, 0.9f, 0.9f);//glm::vec3(0.53f, 0.8f, 1.f);
 	glm::vec3 color = glm::vec3(1.f, 1.f, 1.f);
 
 	Intersection hit = intersection(origin, rayDir, spheres);
