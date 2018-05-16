@@ -7,16 +7,16 @@
 class Sphere {
 public:
 	Sphere(
-		const glm::vec3 &c,
-		const float &r,
-		const glm::vec3 &sc,
-		const bool &refl = false,
-		const float &transp = 0.0f,
-		const float &refrInd = 0.0f,
-		const float &ef = 0.0f,
-		const glm::vec3 &lc = glm::vec3(0.0f, 0.0f, 0.0f)) :
-		center(c), radius(r), radius2(r * r), surfaceColor(sc), lightColor(lc),
-		refractionIndex(refrInd), reflectivity(refl), transparency(transp), emission(ef)
+		const glm::vec3 &center,
+		const float &radius,
+		const glm::vec3 &surfaceColor,
+		const bool &reflective = false,
+		const float &transparency = 0.0f,
+		const float &refractionIndex = 0.0f,
+		const float &emmisiveStrenght = 0.0f,
+		const glm::vec3 &lightColor = glm::vec3(0.0f, 0.0f, 0.0f)) :
+		center(center), radius(radius), radius2(radius * radius), surfaceColor(surfaceColor), lightColor(lightColor),
+		refractionIndex(refractionIndex), reflectivity(reflective), transparency(transparency), emission(emmisiveStrenght)
 	{ 
 	}
 

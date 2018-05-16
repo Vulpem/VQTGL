@@ -415,10 +415,14 @@ void BasicGLWindow::SLOT_raytraceScene() {
 
 	// Spheres of the scene
 	spheres.push_back(Sphere(glm::vec3(0.0, -10004, -30), 10000, glm::vec3(0.0f, 0.2f, 0.5f), false, 0.0, 0.0));
-	spheres.push_back(Sphere(glm::vec3(0.0f, 0.0f, -20.0f), 2, glm::vec3(1.0f, 1.0f, 1.0f), true, 0.9f, 1.1f));
+
+	spheres.push_back(Sphere(glm::vec3(0.0f, 0.6f, -20.0f), 2, glm::vec3(1.0f, 1.0f, 1.0f), true, 0.8f, 1.1f));
 	spheres.push_back(Sphere(glm::vec3(4.0f, 0.0f, -32.5f), 4, glm::vec3(0.0f, 0.5f, 0.0f), true, 0.0f, 0.0f));
 	spheres.push_back(Sphere(glm::vec3(-5.0f, 0.0f, -35.0f), 3, glm::vec3(0.5f, 0.5f, 0.5f), true, 0.0f, 0.0f));
 	spheres.push_back(Sphere(glm::vec3(-4.5f, -1.0f, -19.0f), 1.5f, glm::vec3(0.5f, 0.1f, 0.0f), true, 0.0f, 0.0f));
+
+    spheres.push_back(Sphere(glm::vec3(0.5f, -2.0f, -14.0f), 0.75f, glm::vec3(0.5f, 0.1f, 0.0f), false, 0.0f, 0.0f));
+
 
 	render(spheres);
 }
@@ -471,7 +475,7 @@ glm::vec3 BasicGLWindow::traceRay(
 		origin += glm::normalize(rayDir) * epsilon;
 	}
 
-	const glm::vec3 backgroundColor = glm::vec3(0.53f, 0.8f, 1.f);
+    const glm::vec3 backgroundColor = glm::vec3(0.988f, 0.764f, 0.639f);//glm::vec3(0.53f, 0.8f, 1.f);
 	glm::vec3 color = glm::vec3(1.f, 1.f, 1.f);
 
 	Intersection hit = intersection(origin, rayDir, spheres);
@@ -487,7 +491,6 @@ glm::vec3 BasicGLWindow::traceRay(
 		else
 		{
 			glm::vec3 objectColor = hit.colorHit;
-			glm::vec3 rayColor = glm::vec3(1.f, 1.f, 1.f);
 			glm::vec3 reflectionColor = glm::vec3(0.f, 0.f, 0.f);
 			glm::vec3 refractionColor = glm::vec3(0.f, 0.f, 0.f);
 			float strength = 1.f;
@@ -507,11 +510,11 @@ glm::vec3 BasicGLWindow::traceRay(
 			strength = glm::clamp(strength, 0.f, 1.f);
 			objectColor *= strength;
 
-			if (depth < m_ui.nBounces->value() - 1)
+            const glm::vec3 reflectionDir = rayDir - glm::dot(2.f * rayDir, hit.normalHit) * hit.normalHit;
+			if (depth < m_ui.nBounces->value() - 1 && (sp.reflectsLight() || sp.refractsLight()))
 			{
 				if (sp.reflectsLight())
 				{
-					const glm::vec3 reflectionDir = rayDir - glm::dot(2.f * rayDir, hit.normalHit) * hit.normalHit;
 					reflectionColor = traceRay(hit.posHit, reflectionDir, spheres, depth + 1, lights, 0.0001f);
 				}
 				if (sp.refractsLight())
@@ -522,32 +525,39 @@ glm::vec3 BasicGLWindow::traceRay(
 					refractionColor = traceRay(outterplane.posHit, rayDir, spheres, depth + 1, lights, 0.0001f);
 				}
 
-				if (sp.reflectsLight() && sp.refractsLight())
+                if (sp.reflectsLight() && sp.refractsLight())
+                {
+                    color = blendReflRefrColors(&sp, rayDir, hit.normalHit, reflectionColor, refractionColor);
+                }
+                else if (sp.reflectsLight())
 				{
-					rayColor = blendReflRefrColors(&sp, rayDir, hit.normalHit, reflectionColor, refractionColor);
-				}
-				else if (sp.reflectsLight())
-				{
-					rayColor = reflectionColor;
-				}
-				else if (sp.refractsLight())
-				{
-					rayColor = refractionColor;
+                    const float reflective = 0.6f;
+                    color = (1 - reflective) * objectColor + reflective * reflectionColor;
 				}
 				else
 				{
-					rayColor = glm::vec3(1.f,1.f,1.f);
-					//TODO diffuse
+                    const float transparency = sp.transparencyFactor();
+                    color = (1 - transparency) * objectColor + transparency * refractionColor;
 				}
-
-				color = rayColor * objectColor;
-			}
+               
+			} //No reflection nor refraction
 			else
 			{
-				color = objectColor;
+				//Phong
+                const float ambientLight = 0.3f;
+                const float shinyness = 0.5f;
+                float lightStrenght = 0.f;
+                std::for_each(lights.begin(), lights.end(), [=, &color, &lightStrenght]
+                (const Sphere& light)
+                {
+                    const float shading = glm::max(0.f, glm::dot(hit.normalHit, glm::normalize(light.getCenter() - hit.posHit)));
+                    const float shine = glm::max(0.f, glm::dot(hit.normalHit, reflectionDir)) * shinyness;
+                    lightStrenght += (ambientLight + shading + shine) / lights.size();
+                });
+                color = objectColor * lightStrenght;
 			}
 		}
-	}
+	} // hit.intersected
 	else
 	{
 		color = backgroundColor;
