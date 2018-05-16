@@ -515,7 +515,14 @@ glm::vec3 BasicGLWindow::traceRay(
 			{
 				if (sp.reflectsLight())
 				{
+                    float shine = 0.f;
+                    for (int n = 0; n < lights.size(); n++)
+                    {
+                        const glm::vec3 LightRayDir = glm::normalize(lights[n].getCenter() - hit.posHit);
+                        shine = glm::max(shine, glm::pow(glm::dot(LightRayDir, reflectionDir), 100));
+                    }
 					reflectionColor = traceRay(hit.posHit, reflectionDir, spheres, depth + 1, lights, 0.0001f);
+                    reflectionColor *= (1 + shine);
 				}
 				if (sp.refractsLight())
 				{
