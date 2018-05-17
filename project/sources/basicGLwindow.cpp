@@ -409,12 +409,14 @@ void BasicGLWindow::SLOT_raytraceScene() {
 	std::vector<Sphere> spheres;
 
 	// Lights
-	spheres.push_back(Sphere(glm::vec3(10.0f, 20.0f, 0.0f), 2, glm::vec3(0.0f, 0.0f, 0.0f), false, 0.0f, 0.0f, 1.f, glm::vec3(1.0f, 1.0f, 1.0f)));
-	spheres.push_back(Sphere(glm::vec3(-10.0f, 20.0f, 0.0f), 2, glm::vec3(0.0f, 0.0f, 0.0f), false, 0.0f, 0.0f, 1.f, glm::vec3(1.0f, 1.0f, 1.0f)));
-	spheres.push_back(Sphere(glm::vec3(0.0f, 10.0f, 0.0f), 2, glm::vec3(0.0f, 0.0f, 0.0f), false, 0.0f, 0.0f, 1.f, glm::vec3(1.0f, 1.0f, 1.0f)));
+	spheres.push_back(Sphere(glm::vec3(10.0f, 20.0f, 0.0f), 2, glm::vec3(0.0f, 0.0f, 0.0f), false, 0.0f, 0.0f, 1.f, glm::vec3(91.f / 255.f, 91.f / 255.f, 120.f/255.f)));
+	spheres.push_back(Sphere(glm::vec3(-10.0f, 20.0f, 0.0f), 2, glm::vec3(0.0f, 0.0f, 0.0f), false, 0.0f, 0.0f, 1.f, glm::vec3(237.f / 255.f, 147.f / 255.f, 55.f / 255.f)));
+	spheres.push_back(Sphere(glm::vec3(0.0f, 10.0f, 0.0f), 2, glm::vec3(0.0f, 0.0f, 0.0f), false, 0.0f, 0.0f, 1.f, glm::vec3(140.f / 255.f, 0.f / 255.f, 114.f / 255.f)));
 
 	// Spheres of the scene
-	spheres.push_back(Sphere(glm::vec3(0.0, -10004, -30), 10000, glm::vec3(0.0f, 0.2f, 0.5f), false, 0.0, 0.0));
+	//spheres.push_back(Sphere(glm::vec3(0.0, -10004, -30), 10000, glm::vec3(0.0f, 0.2f, 0.5f), false, 0.0, 0.0));
+	spheres.push_back(Sphere(glm::vec3(0.0, -10004, -30), 10000, glm::vec3(1.f, 1.f, 1.f), false, 0.0, 0.0));
+
 
 	spheres.push_back(Sphere(glm::vec3(0.0f, 0.6f, -20.0f), 2, glm::vec3(1.0f, 1.0f, 1.0f), true, 0.8f, 1.1f));
 	spheres.push_back(Sphere(glm::vec3(4.0f, 0.0f, -32.5f), 4, glm::vec3(0.0f, 0.5f, 0.0f), true, 0.0f, 0.0f));
@@ -493,41 +495,60 @@ glm::vec3 BasicGLWindow::traceRay(
 			glm::vec3 objectColor = hit.colorHit;
 			glm::vec3 reflectionColor = glm::vec3(0.f, 0.f, 0.f);
 			glm::vec3 refractionColor = glm::vec3(0.f, 0.f, 0.f);
+			
 			float strength = 1.f;
-
+			glm::vec3 lightColor(0.f, 0.f, 0.f);
+			int nLights = 0;
 			//Calculate shadow strength
-			for (int n = 0; n < lights.size(); n++)
+			std::for_each(lights.begin(), lights.end(), [&](const Sphere& light)
 			{
-				const glm::vec3 LightRayDir = glm::normalize(lights[n].getCenter() - hit.posHit);
+				const glm::vec3 LightRayDir = glm::normalize(light.getCenter() - hit.posHit);
 				Intersection lightHit = intersection(hit.posHit, LightRayDir, spheres, 0.01f);
 				if (lightHit.intersected && lightHit.object->isLight() == false)
 				{
 					float d = std::abs(glm::dot(hit.normalHit, -LightRayDir));
 					strength -= (d / (float)lights.size());
 				}
-				objectColor *= lights[n].emissionFactor() * lights[n].getLightColor();
-			}
-			strength = glm::clamp(strength, 0.f, 1.f);
+				else
+				{
+					lightColor += light.getLightColor();
+					nLights++;
+				}
+			});
 			objectColor *= strength;
+
+			if (nLights != 0)
+			{
+				lightColor = lightColor / (float)nLights;
+				const float blend = 0.65f;
+
+				objectColor *= objectColor * blend + lightColor * (1.f - blend);
+			}
 
             const glm::vec3 reflectionDir = rayDir - glm::dot(2.f * rayDir, hit.normalHit) * hit.normalHit;
 			if (depth < m_ui.nBounces->value() - 1 && (sp.reflectsLight() || sp.refractsLight()))
 			{
 				if (sp.reflectsLight())
 				{
-                    float shine = 0.f;
-                    for (int n = 0; n < lights.size(); n++)
-                    {
-                        const glm::vec3 LightRayDir = glm::normalize(lights[n].getCenter() - hit.posHit);
-                        shine = glm::max(shine, glm::pow(glm::dot(LightRayDir, reflectionDir), 100));
-                    }
+					glm::vec3 shine(0.f, 0.f, 0.f);
+					std::for_each(lights.begin(), lights.end(), [&](const Sphere& light)
+					{
+						const glm::vec3 LightRayDir = glm::normalize(light.getCenter() - hit.posHit);
+						float shineStrength = glm::pow(glm::dot(LightRayDir, reflectionDir), 50);
+						glm::vec3 thisShine = light.getLightColor() * shineStrength;
+						shine.r = glm::max(shine.r, thisShine.r);
+						shine.g = glm::max(shine.g, thisShine.g);
+						shine.b = glm::max(shine.b, thisShine.b);
+					});
 					reflectionColor = traceRay(hit.posHit, reflectionDir, spheres, depth + 1, lights, 0.0001f);
-                    reflectionColor *= (1 + shine);
+                    reflectionColor += (shine);
 				}
 				if (sp.refractsLight())
 				{
 					//TODO to fix
+					float eta = sp.getRefractionIndex();
 					glm::vec3 dir = (-hit.normalHit + rayDir) * 0.5f;
+					dir = glm::normalize(dir);
 					Intersection outterplane = intersection(hit.posHit, dir, spheres, 0.01f);
 					refractionColor = traceRay(outterplane.posHit, rayDir, spheres, depth + 1, lights, 0.0001f);
 				}
@@ -552,13 +573,13 @@ glm::vec3 BasicGLWindow::traceRay(
 			{
 				//Phong
                 const float ambientLight = 0.3f;
-                const float shinyness = 0.5f;
+                const float shininess = 0.5f;
                 float lightStrenght = 0.f;
                 std::for_each(lights.begin(), lights.end(), [=, &color, &lightStrenght]
                 (const Sphere& light)
                 {
                     const float shading = glm::max(0.f, glm::dot(hit.normalHit, glm::normalize(light.getCenter() - hit.posHit)));
-                    const float shine = glm::max(0.f, glm::dot(hit.normalHit, reflectionDir)) * shinyness;
+                    const float shine = glm::max(0.f, glm::dot(hit.normalHit, reflectionDir)) * shininess;
                     lightStrenght += (ambientLight + shading + shine) / lights.size();
                 });
                 color = objectColor * lightStrenght;
